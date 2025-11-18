@@ -14,13 +14,14 @@ const Navbar = () => {
   const links = [
     { href: "/", label: "Home" },
     { href: "/competition", label: "Competition" },
+    { href: "/timeline", label: "Timeline" },
     { href: "/about", label: "About" },
     { href: "/contact", label: "Contact" },
   ];
 
   return (
     <>
-      <div className="bg-background/50 backdrop-blur-lg rounded-b-2xl py-4 px-8 flex justify-between items-center fixed top-0 shadow-sm z-20 w-full">
+      <div className="bg-background/90 backdrop-blur-md rounded-b-2xl py-4 px-8 flex justify-between items-center fixed top-0 shadow-sm z-20 w-full">
         <Image src="/logo.png" width={100} alt="logo" height={60} />
 
         <button
@@ -63,6 +64,11 @@ const Navbar = () => {
             <Link
               key={link.href}
               href={link.href}
+              onClick={() => {
+                setTimeout(() => {
+                  setOpen(false);
+                }, 800);
+              }}
               className={clsx(
                 "px-3 py-2 rounded-xl transition mx-3",
                 pathname === link.href

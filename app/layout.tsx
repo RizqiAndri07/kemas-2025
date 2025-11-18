@@ -24,7 +24,7 @@ export default function RootLayout({
         className={`${jakartaSans.variable} antialiased bg-zinc-100 font-sans`}
       >
         <Navbar />
-        <main className="min-h-screen pt-30">{children}</main>
+        <main className="min-h-screen pt-20">{children}</main>
         <Footer />
       </body>
     </html>
