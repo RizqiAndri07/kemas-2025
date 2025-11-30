@@ -10,7 +10,7 @@ const WhatsNew = () => {
           Tahun ini lebih spesial! Berbagai inovasi dan peningkatan untuk
           pengalaman terbaik.
         </p>
-        <div className="flex flex-col gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="bg-background w-full flex flex-col items-center justify-center p-6 rounded-2xl gap-3">
             <div className="bg-primary/15 rounded-2xl p-3 text-primary">
               <Trophy size={48} />

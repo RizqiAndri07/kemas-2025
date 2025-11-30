@@ -5,12 +5,14 @@ import React from "react";
 
 const Footer = () => {
   return (
-    <div className="bg-background mt-10 px-7 py-20 rounded-t-2xl border">
-      <Image alt="logo" src={"/logo.png"} width={100} height={50} />
-      <p className="body text-foreground/60 my-4">
-        Event tahunan multi-kompetisi terbesar untuk anak muda Indonesia. Mari
-        bergabung dan tunjukkan bakatmu!
-      </p>
+    <div className="bg-background mt-10 px-7 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 py-20 rounded-t-2xl border">
+      <div>
+        <Image alt="logo" src={"/logo.png"} width={100} height={50} />
+        <p className="body text-foreground/60 my-4">
+          Event tahunan multi-kompetisi terbesar untuk anak muda Indonesia. Mari
+          bergabung dan tunjukkan bakatmu!
+        </p>
+      </div>
       <div className="my-4">
         <p className="body-lg text-primary my-3 ">Quick Links</p>
         <ul className="flex flex-col gap-2 text-foreground/60">

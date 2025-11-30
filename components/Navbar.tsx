@@ -40,9 +40,9 @@ const Navbar = () => {
               key={link.href}
               href={link.href}
               className={clsx(
-                "px-3 py-1 rounded-md transition",
+                "px-3 py-1 rounded-md transition relative",
                 pathname === link.href
-                  ? "bg-purple-200 text-purple-700 font-semibold"
+                  ? "text-purple-700 font-semibold after:content-[''] after:absolute after:left-0 after:right-0 after:-bottom-1 after:h-0.5 after:bg-linear-to-r after:from-primary after:to-secondary"
                   : "hover:text-purple-700"
               )}
             >
