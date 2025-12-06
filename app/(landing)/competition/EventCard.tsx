@@ -1,9 +1,9 @@
-import { IDataEvent } from "@/interface/event.interface";
+import { IDataEvent } from "@/types/event.interface";
 import { Calendar, Info, Sparkles, Users } from "lucide-react";
 import Link from "next/link";
 import React from "react";
 interface EventCardProps {
-  event:IDataEvent;
+  event: IDataEvent;
 }
 const EventCard = ({ event }: EventCardProps) => {
   return (
@@ -18,7 +18,7 @@ const EventCard = ({ event }: EventCardProps) => {
       {/* Card Body */}
       <div className="p-6">
         <p className="body-sm text-left text-foreground/60 text-sm mb-6 ">
-          {event.deskripsi}
+          {event.description}
         </p>
 
         {/* Info */}
@@ -27,14 +27,14 @@ const EventCard = ({ event }: EventCardProps) => {
             <Calendar className="text-secondary" />
             <div className="body-sm  w-full text-left">
               <p className="text-foreground/60">Pendaftaran</p>
-              <p className="">{event.pendaftaran}</p>
+              <p className="">{event.open_registration}</p>
             </div>
           </div>
           <div className="flex items-start gap-2">
             <Sparkles className="text-accent" />
             <div className="body-sm  w-full text-left">
               <p className="text-foreground/60">Biaya</p>
-              <p className="">{event.harga}</p>
+              <p className="">{event.prize}</p>
             </div>
           </div>
         </div>
@@ -43,13 +43,13 @@ const EventCard = ({ event }: EventCardProps) => {
       <div className="grid px-6 gap-2 py-3">
         <Link
           className="bg-linear-to-br from-primary to-secondary text-primary-foreground p-3 rounded-2xl flex items-center justify-center gap-2  shadow-md "
-          href={""}
+          href={`${event.link_registration}`}
         >
           <Users size={20} />
           Daftar Sekarang
         </Link>
         <Link
-          href={""}
+          href={`/competition/${event.id}`}
           className="p-3 bg-secondary/10 rounded-2xl flex justify-center items-center gap-2 text-secondary border border-secondary"
         >
           <Info />
