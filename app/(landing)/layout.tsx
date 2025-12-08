@@ -3,6 +3,7 @@ import { Plus_Jakarta_Sans } from "next/font/google";
 import "../globals.css";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import Image from "next/image";
 const jakartaSans = Plus_Jakarta_Sans({
   variable: "--font-plus-jakarta-sans",
   subsets: ["latin"],
@@ -27,6 +28,16 @@ export default function RootLayout({
         <main className="min-h-screen scroll-smooth pt-20 md:pt-26 lg:pt-28 px-4 md:px-22 lg:px-38">
           {children}
         </main>
+        <div className="relative">
+          <div className="absolute h-screen bg-linear-to-t from-primary/20 to-primary/10 w-full blur-2xl -top-[500px] -z-40"></div>
+          <Image
+            src={"./Vector.svg"}
+            alt="Vector"
+            className="w-full"
+            width={0}
+            height={0}
+          />
+        </div>
         <Footer />
       </body>
     </html>

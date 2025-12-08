@@ -4,7 +4,7 @@ import React from "react";
 const WhatsNew = () => {
   return (
     <>
-      <div className="text-center  mt-15 mx-5">
+      <div className="text-center mx-5">
         <h4 className="text-primary">Whats New di Prasasti 10? </h4>
         <p className="body text-foreground/80">
           Tahun ini lebih spesial! Berbagai inovasi dan peningkatan untuk

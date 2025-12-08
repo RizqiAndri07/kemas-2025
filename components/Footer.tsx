@@ -5,7 +5,7 @@ import React from "react";
 
 const Footer = () => {
   return (
-    <div className="bg-background mt-10 px-7 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 py-20 rounded-t-2xl border">
+    <div className="bg-background px-7 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 py-20">
       <div>
         <Image alt="logo" src={"/logo.png"} width={100} height={50} />
         <p className="body text-foreground/60 my-4">

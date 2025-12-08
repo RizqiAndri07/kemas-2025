@@ -2,22 +2,12 @@ import React from "react";
 import HeroSection from "./HeroSection";
 import EventCard from "./EventCard";
 import { IDataEvent } from "@/types/event.interface";
-
-const getCompetition = async () => {
-  try {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/competition`, {
-      cache: "no-store",
-    });
-    const data = await res.json();
-    return data;
-  } catch (error) {
-    console.error("Failed to fetch competition data:", error);
-    return [];
-  }
+import { competitionData } from "@/data/competition";
+const getCompetition = () => {
+  return competitionData;
 };
 
 const page = async () => {
-  
   const event = await getCompetition();
   console.log(event);
   return (
