@@ -18,7 +18,7 @@ const page = async () => {
           ada pertanyaan.
         </p>
       </div>
-      <div className="flex gap-10 flex-row justify-between">
+      <div className="flex gap-10 flex-col md:flex-row justify-between">
         <div className="bg-background basis-2/5 p-10 md:p-20 rounded-2xl shadow-md space-y-10">
           <div className="content">
             <h4 className="text-primary">Jam Operasional</h4>
@@ -84,7 +84,7 @@ const page = async () => {
                   className="bg-accent/30 p-1 size-8 text-accent rounded-md inline-block mr-2"
                 />
                 <div className="usn text-start">
-                  <p className="body-lg font-medium">TikTok</p>
+                  <p className="body-lg font-medium">Gmail</p>
                   <p className="body-sm font-light text-foreground/70">
                     @kemasprasasti
                   </p>
@@ -100,17 +100,17 @@ const page = async () => {
               className="bg-background rounded-2xl w-full items-center justify-between shadow-md p-6 flex "
             >
               <div className="text-start">
-                <h3 className="text-primary">{person.event}</h3>
+                <h5 className="text-primary">{person.event}</h5>
                 <p className="body-lg font-medium ">{person.name}</p>
                 <p className="body-lg text-foreground/60">{person.phone}</p>
               </div>
               <a
-                href={"https://wa.me/+6281234567890"}
+                href={person.wa_link}
                 target="_blank"
                 rel="noreferrer"
-                className="bg-green-500 px-4 py-2 rounded-lg inline-flex items-center gap-2 hover:bg-accent/20 transition text-background"
+                className="bg-green-500 px-4 py-2 rounded-lg inline-flex items-center gap-2 hover:bg-accent/20 transition text-background min-w-30 body-sm justify-center"
               >
-                Chat via WhatsApp
+                Chat Now
               </a>
             </div>
           ))}

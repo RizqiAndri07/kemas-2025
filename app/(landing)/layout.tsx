@@ -31,7 +31,7 @@ export default function RootLayout({
         <div className="relative">
           <div className="absolute h-screen bg-linear-to-t from-primary/20 to-primary/10 w-full blur-2xl -top-[500px] -z-40"></div>
           <Image
-            src={"./Vector.svg"}
+            src={"/Vector.svg"}
             alt="Vector"
             className="w-full"
             width={0}

@@ -12,6 +12,13 @@ export const competitionData = [
     prize: 5000000,
     pamflet: "/pamflet/tryout.png",
     contact: "+6281234567890",
+    rules: [
+      "Peserta wajib membawa kartu identitas saat mengikuti Try Out.",
+      "Peserta harus hadir 30 menit sebelum jadwal dimulai.",
+      "Dilarang membawa alat komunikasi selama ujian berlangsung.",
+      "Setiap peserta wajib mematuhi peraturan yang telah ditetapkan panitia.",
+      "Hasil Try Out bersifat rahasia dan hanya untuk evaluasi pribadi peserta.",
+    ],
   },
   {
     id: 2,
@@ -47,6 +54,12 @@ export const competitionData = [
     prize: 6000000,
     pamflet: "/pamflet/accoustic_dance.png",
     contact: "+6281234567890",
+    rules: [
+      "Peserta wajib membawa alat musik akustik sendiri.",
+      "Penampilan dance harus sesuai dengan tema yang ditentukan.",
+      "Setiap peserta harus mematuhi jadwal yang telah ditetapkan.",
+      "Keputusan juri bersifat final dan tidak dapat diganggu gugat.",
+    ],
   },
   {
     id: 4,
@@ -61,6 +74,13 @@ export const competitionData = [
     prize: 6000000,
     pamflet: "/pamflet/mlbb_competition.png",
     contact: "+6281234567890",
+    rules: [
+      "Setiap tim terdiri dari 5 pemain utama dan 2 pemain cadangan.",
+      "Durasi pertandingan adalah 2x15 menit dengan istirahat 5 menit.",
+      "Setiap tim wajib mengenakan seragam yang sesuai dengan peraturan MLBB.",
+      "Pelanggaran akan dikenakan hukuman sesuai dengan aturan MLBB yang berlaku.",
+      "Keputusan wasit bersifat mutlak dan tidak dapat diganggu gugat.",
+    ],
   },
   {
     id: 5,
@@ -75,5 +95,10 @@ export const competitionData = [
     prize: 6000000,
     pamflet: "/pamflet/prasasti_festival.png",
     contact: "+6281234567890",
+    rules: [
+      "Peserta wajib mematuhi jadwal yang telah ditetapkan.",
+      "Setiap peserta harus mengikuti semua peraturan yang berlaku selama festival.",
+      "Keputusan juri bersifat final dan tidak dapat diganggu gugat.",
+    ],
   },
 ];
