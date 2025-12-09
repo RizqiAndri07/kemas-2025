@@ -4,7 +4,6 @@ import { ArrowRight } from "lucide-react";
 // import Image from "next/image";
 import Link from "next/link";
 
-import { GravityStarsBackground } from "../animate-ui/components/backgrounds/gravity-stars";
 
 const HeroSection = () => {
   return (
