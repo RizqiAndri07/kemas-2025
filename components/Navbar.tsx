@@ -20,7 +20,7 @@ const Navbar = () => {
 
   return (
     <>
-      <div className="bg-background/90 backdrop-blur-md rounded-b-2xl py-4 px-8 flex justify-between items-center fixed top-0 shadow-sm z-20 w-full">
+      <div className="bg-linear-to-r from-accent/30 to-[#FF9696]/30 rounded-b-lg backdrop-blur-md py-4 px-8 flex justify-between items-center fixed w-full  top-0 z-20  ">
         <Image src="/logo.png" width={100} alt="logo" height={60} />
 
         <button
@@ -29,7 +29,11 @@ const Navbar = () => {
             open ? "rotate-90" : "rotate-0"
           }`}
         >
-          {open ? <X /> : <Menu />}
+          {open ? (
+            <X className="text-primary bg-background/20 backdrop-blur-lg rounded-md size-7 p-0.5" />
+          ) : (
+            <Menu className="text-primary bg-background/20 backdrop-blur-lg rounded-md size-7 p-0.5" />
+          )}
         </button>
 
         {/* Desktop Menu */}
@@ -41,7 +45,7 @@ const Navbar = () => {
               className={clsx(
                 "px-3 py-1 rounded-md transition relative",
                 pathname === link.href
-                  ? "text-purple-700 font-semibold after:content-[''] after:absolute after:left-0 after:right-0 after:-bottom-1 after:h-0.5 after:bg-linear-to-r after:from-primary after:to-secondary"
+                  ? "text-purple-700 font-semibold after:content-[''] after:absolute after:left-0 after:right-0 after:-bottom-1 after:h-0.5 after:bg-linear-to-r after:from-primary/20 after:to-primary"
                   : "hover:text-purple-700"
               )}
             >

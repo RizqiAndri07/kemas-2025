@@ -1,8 +1,9 @@
 import { Button } from "@/components/ui/button";
 import { competitionData } from "@/data/competition";
-import { ArrowLeft, Calendar, Landmark, ScrollText } from "lucide-react";
+import { ArrowLeft, Calendar, Download, Landmark } from "lucide-react";
 import Link from "next/link";
 
+// import Register from "./Register";
 type Props = {
   params: { id: string };
 };
@@ -59,18 +60,6 @@ const Page = async ({ params }: Props) => {
               className="bg-accent/20 border-accent/40 border text-accent rounded-md p-2 md:size-14 size-10 "
             />
             <div className="">
-              <h5 className="text-accent">Harga</h5>
-              <p className="body-sm text-foreground/70">
-                {`Rp ${detailCompetition?.prize.toLocaleString("id-ID")}`}
-              </p>
-            </div>
-          </div>
-          <div className="bg-background w-full flex items-center gap-4 px-5 py-3 md:px-10  md:py-7 rounded-2xl shadow-md border border-accent/40">
-            <Landmark
-              size={16}
-              className="bg-accent/20 border-accent/40 border text-accent rounded-md p-2 md:size-14 size-10 "
-            />
-            <div className="">
               <h5 className="text-accent">Lokasi</h5>
               <p className="body-sm text-foreground/70">
                 {detailCompetition?.location}
@@ -78,34 +67,28 @@ const Page = async ({ params }: Props) => {
             </div>
           </div>
         </div>
-        {detailCompetition?.rules && (
-          <div className="w-full bg-background p-8 rounded-2xl shadow-md border border-foreground/10">
-            <div className="flex text-secondary items-center gap-2 mb-4">
-              <ScrollText
-                size={32}
-                className="bg-secondary/20 border-secondary/40 border text-secondary rounded-xl p-2 size-12 "
-              />
-              <h4 className="text-primary">Syarat dan Ketentuan</h4>
-            </div>
-            <ol className="list-decimal list-inside space-y-2">
-              {detailCompetition.rules.map((rule, index) => (
-                <li key={index} className="body text-foreground/70">
-                  {rule}
-                </li>
-              ))}
-            </ol>
-          </div>
-        )}
+        {/* {detailCompetition?.berkas}j */}
+        <Button variant={"gradient"} className="w-full">
+          Download Guide Book
+          <Download />
+        </Button>
+        <div className="bg-white w-full rounded-xl shadow-md p-2">
+          <h5>Contact Person</h5>
+          <ul>
+            <li>Cp 1</li>
+            <li>Cp 2</li>
+          </ul>
+        </div>
       </div>
       <div className="w-full bg-background p-4 rounded-2xl shadow-md border border-foreground/10 sticky bottom-0">
-        <Link href={detailCompetition?.link_registration || "#"}>
+        <Link href={"/competition/" + detailCompetition?.id + "/registration"}>
           <Button className="w-full" size="lg" variant={"gradient"}>
             Daftar Sekarang
           </Button>
         </Link>
       </div>
+      {/* // TODO: add connct to registration page */}
     </div>
   );
 };
-
 export default Page;

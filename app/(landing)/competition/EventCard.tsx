@@ -1,5 +1,6 @@
 import { IDataEvent } from "@/types/event.interface";
 import { Calendar, Info, Sparkles, Users } from "lucide-react";
+// import Image from "next/image";
 import Link from "next/link";
 import React from "react";
 interface EventCardProps {
@@ -7,17 +8,23 @@ interface EventCardProps {
 }
 const EventCard = ({ event }: EventCardProps) => {
   return (
-    <div className="bg-background rounded-2xl">
-      <div className=" p-6 flex flex-col justify-center items-center h-36 md:h-60 text-center relative overflow-hidden bg-linear-to-r rounded-t-2xl from-primary/20 to-accent/20">
+    <div className="bg-background rounded-2xl flex flex-col ">
+      <div className=" flex-1 p-6 flex flex-col justify-center items-center h-36 md:h-60 text-center relative overflow-hidden bg-linear-to-r rounded-t-2xl from-primary/20 to-accent/20">
         <div className="absolute top-0 right-0 w-32 h-32 rounded-full blur-2xl opacity-30" />
         <div className="text-6xl mb-3 relative z-10">{event.logo}</div>
+        {/* <Image
+          src={event?.logo || "/assets/competitions/to.png"}
+          alt={event?.name || "Competition Logo"}
+          width={200}
+          height={200}
+        /> */}
 
-        <h3 className="relative z-10 text-primary">{event.name}</h3>
+        <h5 className="relative z-10 text-primary">{event.name}</h5>
       </div>
 
       {/* Card Body */}
-      <div className="p-6">
-        <p className="body-sm text-left text-foreground/60 text-sm mb-6 ">
+      <div className="p-6 flex-2 flex flex-col justify-between">
+        <p className="body-sm text-left flex-1 text-foreground/60 text-sm mb-6 ">
           {event.description}
         </p>
 
@@ -43,18 +50,18 @@ const EventCard = ({ event }: EventCardProps) => {
       <div className="grid px-6 gap-2 py-3">
         <Link
           className="bg-linear-to-br from-primary to-secondary text-primary-foreground p-3 rounded-2xl flex items-center justify-center gap-2  shadow-md "
-          href={`${event.link_registration}`}
+          href={`/competition/${event.id}`}
         >
           <Users size={20} />
           Daftar Sekarang
         </Link>
-        <Link
+        {/* <Link
           href={`/competition/${event.id}`}
           className="p-3 bg-secondary/10 rounded-2xl flex justify-center items-center gap-2 text-secondary border border-secondary"
         >
           <Info />
           Lihat Detail
-        </Link>
+        </Link> */}
       </div>
     </div>
   );
