@@ -17,7 +17,7 @@ const EventCard = ({ event }: EventCardProps) => {
 
       {/* Card Body */}
       <div className="p-6 flex-2 flex flex-col justify-between">
-        <p className="body-sm  text-left flex-1 h-[200px] line-clamp-3 text-foreground/60 text-sm mb-6 ">
+        <p className="body-sm font-poppins text-left flex-1 line-clamp-3 text-foreground/60 mb-6 ">
           {event.description}
         </p>
 
@@ -38,7 +38,10 @@ const EventCard = ({ event }: EventCardProps) => {
                 Object.entries(event.prize).map(([key, value]) => (
                   <div key={key} className="flex w-full justify-between">
                     <p className="">{key}</p>
-                    <p> Rp {value.toLocaleString("id-ID")}</p>
+                    <p className="min-w-[100px]">
+                      {" "}
+                      Rp {value.toLocaleString("id-ID")}
+                    </p>
                   </div>
                 ))
               ) : (

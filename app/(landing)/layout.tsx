@@ -1,18 +1,21 @@
 import type { Metadata } from "next";
-import { BBH_Sans_Bartle, Plus_Jakarta_Sans } from "next/font/google";
+import { Poppins } from "next/font/google";
 import "../globals.css";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import Image from "next/image";
-const jakartaSans = Plus_Jakarta_Sans({
-  variable: "--font-plus-jakarta-sans",
-  subsets: ["latin"],
-});
-// const bbh = BBH_Sans_Bartle({
-//   variable: "--font-bbh-sans-bartle",
-//   subsets: ["latin"],
-// });
+import localfont from "next/font/local";
 
+const poppins = Poppins({
+  variable: "--font-poppins",
+  subsets: ["latin"],
+  weight: ["400", "700"],
+});
+
+const BiscuitGlitch = localfont({
+  src: "../../public/fonts/Biscuit Glitch.ttf",
+  variable: "--font-biscuit-glitch",
+});
 // TODO: font Biscuit Glitch
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -27,10 +30,10 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${jakartaSans.variable} antialiased bg-linear-to-b from-accent/40 to-secondary/20 font-sans`}
+        className={` ${BiscuitGlitch.variable} ${poppins.variable} antialiased bg-linear-to-b from-accent/40 to-secondary/20`}
       >
         <Navbar />
-        <main className="min-h-screen scroll-smooth pt-20 md:pt-26 lg:pt-28 px-4 md:px-22 lg:px-38">
+        <main className="min-h-screen scroll-smooth px-4 md:px-22 lg:px-38">
           {children}
         </main>
         <div className="relative">

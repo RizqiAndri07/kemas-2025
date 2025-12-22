@@ -6,10 +6,7 @@ import {
   CircleUserRound,
   Download,
   Landmark,
-  PersonStanding,
-  Phone,
 } from "lucide-react";
-import { a } from "motion/react-client";
 import Link from "next/link";
 
 // import Register from "./Register";
@@ -21,6 +18,33 @@ const getDetailCompetition = async (id: string) => {
   // Simulate fetching data based on the id
   return competitionData.find((event) => event.id.toString() === id);
 };
+export async function generateMetadata({ params }: Props) {
+  const id = params.id;
+  const detailCompetition = await getDetailCompetition(id);
+
+  return {
+    title: `${detailCompetition?.name} | Prasasti 2025`,
+    description: detailCompetition?.description,
+    authors: [
+      { name: "KEMAS UNS Sukoharjo", url: "https://kemas-2025.vercel.app" },
+    ],
+    icons: {
+      icon: "./logo.svg",
+    },
+    openGraph: {
+      title: `${detailCompetition?.name} | Prasasti 2025`,
+      description: detailCompetition?.description,
+      images: [
+        {
+          url: "./logo.svg",
+          width: 800,
+          height: 600,
+          alt: "Prasasti 2025",
+        },
+      ],
+    },
+  };
+}
 
 const Page = async ({ params }: Props) => {
   const id = (await params).id;
@@ -82,7 +106,7 @@ const Page = async ({ params }: Props) => {
         <div className="flex flex-col md:flex-row w-full gap-4">
           {detailCompetition?.berkas && (
             <div className="w-full bg-background p-5 space-y-3 rounded-xl shadow">
-              <h5>Berkas</h5>
+              <h5 className="text-primary">Berkas</h5>
               <div className="grid md:grid-cols-2 gap-2 w-full">
                 {detailCompetition?.berkas &&
                   Object.entries(detailCompetition.berkas).map(
@@ -110,7 +134,7 @@ const Page = async ({ params }: Props) => {
 
           {detailCompetition?.contact && (
             <div className="bg-white w-full rounded-xl shadow p-5">
-              <h5 className="mb-2">Contact Person</h5>
+              <h5 className="mb-2 text-primary">Contact Person</h5>
               <div className="flex flex-col gap-2 ">
                 {detailCompetition?.contact &&
                   Object.entries(detailCompetition.contact).map(

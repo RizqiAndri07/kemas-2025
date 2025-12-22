@@ -14,7 +14,7 @@ export interface IDataEvent {
   prize: number | Record<string, number> | string;
   pamflet?: string;
 
-  contact?: string | Record<string, string>;
+  contact?: Record<string, string>;
 
   berkas?: Record<string, string>;
 }

@@ -20,7 +20,7 @@ const Navbar = () => {
 
   return (
     <>
-      <div className="bg-linear-to-r from-accent/30 to-[#FF9696]/30 rounded-b-lg backdrop-blur-md py-4 px-8 flex justify-between items-center fixed w-full  top-0 z-20  ">
+      <div className="bg-linear-to-r from-accent/30 to-[#FF9696]/30 rounded-b-lg backdrop-blur-md py-4 px-8 flex justify-between items-center fixed w-full  top-0 z-20 font-poppins">
         <Image src="/logo.png" width={100} alt="logo" height={60} />
 
         <button

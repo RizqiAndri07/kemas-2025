@@ -42,7 +42,7 @@ const timelineEvents = [
 ];
 const Timeline = () => {
   return (
-    <section className="container mx-auto px-4 lg:px-8 mb-20">
+    <section className="container mx-auto px-4 lg:px-8 mb-20 font-poppins">
       <div className="text-center mb-12">
         <h2 className="mb-4 text-[#6A1B9A]">Timeline Event 📅</h2>
         <p className="text-gray-600 max-w-2xl mx-auto">
