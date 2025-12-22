@@ -5,35 +5,60 @@ import {
   Calendar,
   CircleUserRound,
   Download,
+  icons,
   Landmark,
 } from "lucide-react";
+import { image } from "motion/react-client";
 import Link from "next/link";
 
 // import Register from "./Register";
 type Props = {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 };
 
 const getDetailCompetition = async (id: string) => {
   // Simulate fetching data based on the id
   return competitionData.find((event) => event.id.toString() === id);
 };
+
+export const dynamic = "force-static";
+export const dynamicParams = true;
+
+export async function generateStaticParams() {
+  console.log(
+    "STATIC IDS:",
+    competitionData.map((i) => i.id)
+  );
+  return competitionData.map((item) => ({
+    id: String(item.id),
+  }));
+}
+
 export async function generateMetadata({ params }: Props) {
-  const id = params.id;
-  const detailCompetition = await getDetailCompetition(id);
+  const { id } = await params;
+  const data = competitionData.find((c) => String(c.id) === id);
+  console.log("Metadata data:", data);
+  if (!data) {
+    return {
+      title: "Competition | Prasasti 2025",
+      robots: { index: false },
+    };
+  }
 
   return {
-    title: `${detailCompetition?.name} | Prasasti 2025`,
-    description: detailCompetition?.description,
-    authors: [
-      { name: "KEMAS UNS Sukoharjo", url: "https://kemas-2025.vercel.app" },
+    title: `${data.name} | Prasasti 2025`,
+    description: data.description,
+    images: [
+      {
+        url: "/logo.svg",
+        width: 800,
+        height: 600,
+        alt: "Prasasti 2025",
+      },
     ],
-    icons: {
-      icon: "./logo.svg",
-    },
     openGraph: {
-      title: `${detailCompetition?.name} | Prasasti 2025`,
-      description: detailCompetition?.description,
+      title: `${data.name} | Prasasti 2025`,
+      description: data.description,
       images: [
         {
           url: "./logo.svg",

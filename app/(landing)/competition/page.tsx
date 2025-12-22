@@ -17,6 +17,20 @@ export const metadata = {
   icons: {
     icon: "./logo.svg",
   },
+  keywords: [
+    "competition",
+    "event",
+    "prasasti",
+    "kemas uns",
+    "festival",
+    "prasasti 2025",
+    "futsal prasasti",
+    "tryout prasasti",
+    "mlbb prasasti",
+    "accoustic prasasti",
+    "dance prasasti",
+    "prasasti festival",
+  ],
   openGraph: {
     title: "Competition | Prasasti 2025",
     description:
