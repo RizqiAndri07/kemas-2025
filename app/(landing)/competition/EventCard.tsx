@@ -1,8 +1,7 @@
 import { IDataEvent } from "@/types/event.interface";
-import { Calendar, Info, Sparkles, Users } from "lucide-react";
+import { Calendar, Sparkles, Users } from "lucide-react";
 // import Image from "next/image";
 import Link from "next/link";
-import React from "react";
 interface EventCardProps {
   event: IDataEvent;
 }
@@ -12,19 +11,13 @@ const EventCard = ({ event }: EventCardProps) => {
       <div className=" flex-1 p-6 flex flex-col justify-center items-center h-36 md:h-60 text-center relative overflow-hidden bg-linear-to-r rounded-t-2xl from-primary/20 to-accent/20">
         <div className="absolute top-0 right-0 w-32 h-32 rounded-full blur-2xl opacity-30" />
         <div className="text-6xl mb-3 relative z-10">{event.logo}</div>
-        {/* <Image
-          src={event?.logo || "/assets/competitions/to.png"}
-          alt={event?.name || "Competition Logo"}
-          width={200}
-          height={200}
-        /> */}
 
         <h5 className="relative z-10 text-primary">{event.name}</h5>
       </div>
 
       {/* Card Body */}
       <div className="p-6 flex-2 flex flex-col justify-between">
-        <p className="body-sm text-left flex-1 text-foreground/60 text-sm mb-6 ">
+        <p className="body-sm  text-left flex-1 h-[200px] line-clamp-3 text-foreground/60 text-sm mb-6 ">
           {event.description}
         </p>
 
@@ -41,7 +34,16 @@ const EventCard = ({ event }: EventCardProps) => {
             <Sparkles className="text-accent" />
             <div className="body-sm  w-full text-left">
               <p className="text-foreground/60">Biaya</p>
-              <p className="">{event.prize}</p>
+              {event.prize instanceof Object ? (
+                Object.entries(event.prize).map(([key, value]) => (
+                  <div key={key} className="flex w-full justify-between">
+                    <p className="">{key}</p>
+                    <p> Rp {value.toLocaleString("id-ID")}</p>
+                  </div>
+                ))
+              ) : (
+                <p className="">Rp {event.prize.toLocaleString("id-ID")}</p>
+              )}
             </div>
           </div>
         </div>
@@ -55,13 +57,6 @@ const EventCard = ({ event }: EventCardProps) => {
           <Users size={20} />
           Daftar Sekarang
         </Link>
-        {/* <Link
-          href={`/competition/${event.id}`}
-          className="p-3 bg-secondary/10 rounded-2xl flex justify-center items-center gap-2 text-secondary border border-secondary"
-        >
-          <Info />
-          Lihat Detail
-        </Link> */}
       </div>
     </div>
   );

@@ -1,4 +1,6 @@
-export const competitionData = [
+import { IDataEvent } from "@/types/event.interface";
+
+export const competitionData: IDataEvent[] = [
   {
     id: 1,
     name: "Try Out",
@@ -7,12 +9,14 @@ export const competitionData = [
     date: "10 Februari 2024",
     location: "SMA Negeri 1 Sukoharjo",
     description:
-      "Try Out untuk mempersiapkan diri menghadapi ujian masuk perguruan tinggi. Peserta akan mendapatkan pengalaman simulasi ujian yang mirip dengan ujian sesungguhnya. Try Out ini bertujuan untuk membantu peserta mengukur kemampuan dan meningkatkan strategi belajar mereka.",
+      "Kegiatan Try Out Event PRASASTI#10 2026 KEMAS UNS merupakan rangkaian acara PRASASTI#10 2026 yang bertujuan untuk membantu siswa SMA/MK/MA dan siswa Gap Year yang akan masuk Perguruan Tinggi Negeri. Try Out Event PRASASTI#10 2026 diselenggarakan pada hari Minggu, 18 Januari 2026 di SMA Negeri 1 Sukoharjo secara offline dengan pengerjaan sistem CBT. Memiliki beberapa rangkaian acara seperti Pengerjaan Soal, Expo Kampus, Food Bazaar, Parade Universitas, Parade Fakultas, Pembahasan Soal, Games, Awarding dan Penampilan Guest Star.",
     open_registration: "1 Januari 2024 - 31 Januari 2024",
-    link_registration: "http://uns.id/TRYOUTSNBTPRASASTI10",
-    prize: 200000,
+    link_registration: "https://taplink.cc/tryoutprasasti10",
+    prize: 30000,
     pamflet: "/pamflet/tryout.png",
-    contact: "+6281234567890",
+    contact: {
+      Amifa: "+62882003533360",
+    },
     berkas: {
       "Guide Book": "/path",
     },
@@ -22,14 +26,14 @@ export const competitionData = [
     name: "Futsal Competition",
     logo: "⚽",
     maskot: "/assets/competitions/futsal.jpg",
-    date: "15 Maret 2024",
-    location: "Lapangan Futsal Sukoharjo",
+    date: "24 - 25 Januari 2026",
+    location: "GOR Bung Karno Sukoharjo",
     description:
-      "Kompetisi Futsal antar siswa SMA/SMK di wilayah Sukoharjo dan sekitarnya. Kompetisi ini bertujuan untuk mengembangkan bakat olahraga futsal serta menjalin silaturahmi antar pelajar melalui olahraga.",
+      "Futsal Competition PRASASTI#10 2026 KEMAS UNS merupakan turnamenfutsal antar SMA/SMK/MA Sederajat se solo raya yangbertujuan untuk mengembangkan minatbakatdanmenumbuhkansemangatkompetitif serta jiwa sportivitas generasimuda sekarang",
     open_registration: "1 Februari 2024 - 28 Februari 2024",
-    prize: 7000000,
+    prize: 400000,
     pamflet: "/pamflet/futsal.png",
-    contact: "+6281234567890",
+    contact: { Cahyo: "+6288216534905" },
     berkas: {
       "Guide Book ": "path",
       "MOU Pemain": "path",
@@ -39,18 +43,47 @@ export const competitionData = [
   },
   {
     id: 3,
+    name: "MLBB Competition",
+    logo: "🎮",
+    maskot: "/assets/competitions/game.jpg",
+    date: "Sabtu, 31 Januari 2026",
+    location: "Lokananta",
+    description:
+      "ML Competition PRASASTI#10 2026 KEMAS UNS merupakan sebuah tournament games yang akan dilaksanakan secara online dan offline, yang bertujuan sebagai ajang pembuktian kemampuan tim-tim lokal di tingkat regional, sekaligus membuka peluang menuju kompetisi yang lebih besar. Tournament ini akan memperebutkan juara 1, 2, dan 3 serta Most Valuable Player (MVP)",
+    open_registration: "1 Maret 2024 - 31 Maret 2024",
+    prize: {
+      "Presale 1": 60000,
+      "Presale 2": 70000,
+    },
+    pamflet: "/pamflet/mlbb_competition.png",
+    contact: {
+      Saskia: "+62895363433664",
+      Nasywa: "+6281327644181",
+    },
+    berkas: {
+      "Surat Pernyataan": "path",
+      "Link Pendaftaran": "path",
+    },
+  },
+  {
+    id: 4,
     name: "Accoustic And Dance Competition",
     logo: "🎸💃",
     maskot: "/assets/competitions/adc.jpg",
-    date: "20 April 2024",
-    location: "Solo Grand Mall",
+    date: "Sabtu, 7 Februari 2026",
+    location: "Atrium NEO Solo Grand Mall",
     description:
-      "Kompetisi Akustik dan Dance yang menggabungkan seni musik dan tari dalam satu acara. Peserta dapat menampilkan bakat mereka dalam bermain alat musik akustik serta dance dengan berbagai genre Dance. Kompetisi ini bertujuan untuk mengapresiasi seni dan budaya melalui pertunjukan yang kreatif.",
+      "Kegiatan Acoustic and Dance Competition PRASASTI#10 2026 KEMAS UNS merupakan suatu ajang kompetisi acoustic dan dance yang diperuntukkan bagi masyarakat umum berusia antara 15-25 tahun se-Eks Karesidenan Surakarta dengan tujuan untuk menunjukkan potensi mereka dalam bidang seni musik dan seni tari",
     open_registration: "1 Maret 2024 - 31 Maret 2024",
-    prize: 6000000,
+    prize: {
+      Acoustic: 110000,
+      Dance: 125000,
+    },
     pamflet: "/pamflet/accoustic_dance.png",
-    contact1: "+6281234567890",
-    contact2: "+6281234567890",
+    contact: {
+      Yunib: "+6285747264162",
+      Aurel: "+6285740693174",
+    },
     berkas: {
       "Guide Book Accoustic": "path",
       "Guide Book Dance": "path",
@@ -59,40 +92,16 @@ export const competitionData = [
     },
   },
   {
-    id: 4,
-    name: "MLBB Competition",
-    logo: "🎮",
-    maskot: "/assets/competitions/game.jpg",
-    date: "5 Mei 2024",
-    location: "Solo Grand Mall",
-    description:
-      "Kompetisi Esport Mobile Legends: Bang Bang (MLBB) yang diadakan untuk para pemain MLBB di tingkat SMA/SMK. Kompetisi ini bertujuan untuk mengasah kemampuan strategi dan kerja sama tim dalam permainan MLBB serta memberikan pengalaman kompetitif bagi para peserta.",
-    open_registration: "1 Maret 2024 - 31 Maret 2024",
-    prize: 6000000,
-    pamflet: "/pamflet/mlbb_competition.png",
-    contact: "+6281234567890",
-    berkas: {
-      "Surat Pernyataan": "path",
-      "Link Pendaftaran": "path",
-    },
-  },
-  {
     id: 5,
     name: "Prasasti Festival",
     logo: "🎭",
     maskot: "",
-    date: "Cooming Soon",
-    location: "Cooming Soon",
+    date: "Minggu, 8 Februari 2026",
+    location: "Neo Solo Grand Mall",
     description:
-      "Prasasti Festival adalah acara tahunan yang menampilkan berbagai kegiatan seni, budaya, dan hiburan. Festival ini bertujuan untuk merayakan kreativitas dan bakat para pelajar serta mempererat hubungan antar komunitas melalui berbagai pertunjukan dan kompetisi yang menarik.",
+      "Kegiatan Prasasti Festival ini merupakan puncak dari seluruh rangkaian acara yang ada ( penutup) yang akan disi dengan berbagai penampilan menarik serta akan diselenggarakan secara offline dan untuk masyarakat umum. Tujuannya untuk memperkenalkan Keluarga Mahasiswa Sukoharjo UNS kepada seluruh masyarakat yang telah tergabung dalam acara. ",
     open_registration: "1 Maret 2024 - 31 Maret 2024",
-    prize: 6000000,
+    prize: "Free",
     pamflet: "/pamflet/prasasti_festival.png",
-    contact: "+6281234567890",
-    rules: [
-      "Peserta wajib mematuhi jadwal yang telah ditetapkan.",
-      "Setiap peserta harus mengikuti semua peraturan yang berlaku selama festival.",
-      "Keputusan juri bersifat final dan tidak dapat diganggu gugat.",
-    ],
   },
 ];

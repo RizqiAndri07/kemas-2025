@@ -5,17 +5,17 @@ import React from "react";
 
 const Footer = () => {
   return (
-    <div className="bg-background px-7 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 py-20">
+    <div className="bg-primary text-background px-7 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 py-20">
       <div>
         <Image alt="logo" src={"/logo.png"} width={100} height={50} />
-        <p className="body text-foreground/60 my-4">
+        <p className="body my-4">
           Event tahunan multi-kompetisi terbesar untuk anak muda Indonesia. Mari
           bergabung dan tunjukkan bakatmu!
         </p>
       </div>
       <div className="my-4">
-        <p className="body-lg text-primary my-3 ">Quick Links</p>
-        <ul className="flex flex-col gap-2 text-foreground/60">
+        <p className="body-lg text-secondary my-3 ">Quick Links</p>
+        <ul className="flex flex-col gap-2">
           <li>
             <Link
               href=""
@@ -51,30 +51,27 @@ const Footer = () => {
         </ul>
       </div>
       <div className="kontak-info">
-        <p className="body-lg text-primary my-4">Contact Info</p>
+        <p className="body-lg text-secondary my-4">Contact Info</p>
         <ul className="flex flex-col gap-3">
           <li className="flex gap-2">
             <MapPin className="text-accent " />
             <a
               target="_blank"
               href="https://maps.app.goo.gl/UBTfdvVJikmBMf9VA"
-              className="body text-foreground/60"
+              className="body "
             >
               Sukoharajo, Jawa Tengah
             </a>
           </li>
           <li className="flex gap-2">
             <Mail className="text-accent" />
-            <a
-              href="mailto:kemasunsprasasti@gmail.com"
-              className="body text-foreground/60"
-            >
+            <a href="mailto:kemasunsprasasti@gmail.com" className="body ">
               kemasunsprasasti@gmail.com
             </a>
           </li>
           <li className="flex gap-2">
             <Phone className="text-accent" />
-            <a href="tel:+628822791142" className="body text-foreground/60">
+            <a href="tel:+628822791142" className="body ">
               08822791142
             </a>
           </li>
@@ -124,7 +121,7 @@ const Footer = () => {
             </a>
           </li>
         </ul>
-        <p className="body-sm text-foreground/60 my-3">
+        <p className="body-sm my-3">
           Ikuti media sosial kami untuk update terbaru
         </p>
       </div>

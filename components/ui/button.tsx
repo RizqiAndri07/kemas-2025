@@ -23,6 +23,8 @@ const buttonVariants = cva(
           "text-primary-foreground bg-linear-to-br from-primary to-secondary hover:underline ",
         outlinesecondary:
           "border border-secondary/90 bg-secondary/20 shadow-xs hover:bg-secondary/10 text-secondary",
+        message:
+          "bg-green-400/10 text-green-600 hover:bg-green-100 border border-green-300",
       },
       size: {
         default: "h-9 px-4 py-2 has-[>svg]:px-3",

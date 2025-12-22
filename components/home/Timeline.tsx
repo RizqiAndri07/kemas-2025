@@ -33,7 +33,7 @@ const timelineEvents = [
     icon: "📚",
   },
   {
-    id: 4,
+    id: 5,
     title: "Prasasti Festival",
     date: "25 Januari 2025",
     description: "Kegiatan workshop intensif selama 3 hari.",
