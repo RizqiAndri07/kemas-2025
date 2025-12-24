@@ -39,7 +39,7 @@ export const competitionData: IDataEvent[] = [
     location: "GOR Bung Karno Sukoharjo",
     description:
       "Futsal Competition PRASASTI#10 2026 KEMAS UNS merupakan tournament futsal antar SMA/SMK/MA sederajat se-Solo Raya yang bertujuan untuk mengembangkan minat bakat serta menumbuhkan semangat kompetitif dan jiwa sportivitas generasi muda sekarang.",
-    open_registration: "24 Desember 2025 - 12 Januari 2026",
+    open_registration: "25 Desember 2025 - 12 Januari 2026",
     link_registration: "http://uns.id/FutsalCompetitionPRASASTI10",
     prize: 450000,
     pamflet: "/pamflet/futsal.png",

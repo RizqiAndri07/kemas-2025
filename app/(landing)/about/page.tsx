@@ -2,6 +2,9 @@ import Image from "next/image";
 import fs from "fs";
 import path from "path";
 import React from "react";
+// import { Carousel } from "@/components/ui/carousel";
+import { CarouselComponents } from "./CarouselComponents";
+// import { CarouselComponents } from "./CarouselComponents";
 export const metadata = {
   title: "About | Prasasti 2025",
   description:
@@ -28,8 +31,10 @@ export const metadata = {
 };
 
 const page = () => {
-  const imagesDir = path.join(process.cwd(), "public/assets/foto-prasasti");
+  const imagesDir = path.join(process.cwd(), "public/assets/foto-prasasti/1");
+  const imagesDir2 = path.join(process.cwd(), "public/assets/foto-prasasti/2");
   const images = fs.readdirSync(imagesDir);
+  const images2 = fs.readdirSync(imagesDir2);
   return (
     <div className="flex items-center justify-center mt-20 flex-col space-y-10">
       <p className="text-center body-sm  bg-accent/50 px-8 py-2 rounded-full body-lg w-xs md:w-md text-primary">
@@ -52,20 +57,10 @@ const page = () => {
           className="w-full"
         />
       </div>
-      <div className="galeri">
         <h2 className="text-primary text-center mb-6">Galeri PRASASTI</h2>
-        <div className="flex flex-wrap border">
-          {images.map((image, index) => (
-            <Image
-              key={index}
-              src={`/assets/foto-prasasti/${image}`}
-              alt={`Foto PRASASTI ${index + 1}`}
-              width={500}
-              height={200}
-              className="bg-background w-fit h-fit md:w-80 md:h-96"
-            />
-          ))}
-        </div>
+      <div className="flex gap-x-14 justify-evenly w-full flex-col md:flex-row">
+        <CarouselComponents  foto={images} folder="1"/>
+        <CarouselComponents  foto={images2} folder="2" />
       </div>
     </div>
   );
