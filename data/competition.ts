@@ -23,7 +23,7 @@ export const competitionData: IDataEvent[] = [
       Izzah: "+62882005012121",
     },
     berkas: {
-      "Guide Book": "/path",
+      "Tata Cara": "/TryOut/Tata-Cara-TO.png",
     },
   },
   {
@@ -75,8 +75,8 @@ export const competitionData: IDataEvent[] = [
       Nasywa: "+6281327644181",
     },
     berkas: {
-      "Surat Pernyataan": "path",
-      "Guide Book": "path",
+      "Surat Pernyataan": "/MLBB/Surat-Pernyataan.pdf",
+      "Guide Book": "/MLBB/Guide-Book.pdf",
     },
   },
   {

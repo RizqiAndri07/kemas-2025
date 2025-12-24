@@ -30,7 +30,7 @@ const EventCard = ({ event }: EventCardProps) => {
 
       {/* Card Body */}
       <div className="p-6 flex-2 flex flex-col justify-between">
-        <p className="body-sm font-poppins text-left flex-1 line-clamp-3 text-foreground/60 mb-6 ">
+        <p className="body-xs max-h-[60px] font-poppins text-left flex-1 line-clamp-3 text-foreground/60 mb-6 ">
           {event.description}
         </p>
 
@@ -39,7 +39,7 @@ const EventCard = ({ event }: EventCardProps) => {
           {event.open_registration && (
             <div className="flex items-start gap-2 ">
               <Calendar className="text-secondary" />
-              <div className="body-sm  w-full text-left">
+              <div className="body-xs  w-full text-left">
                 <p className="text-foreground/60">Pendaftaran</p>
                 <p className="">{event.open_registration}</p>
               </div>
@@ -56,15 +56,15 @@ const EventCard = ({ event }: EventCardProps) => {
                   {event.prize instanceof Object ? (
                     Object.entries(event.prize).map(([key, value]) => (
                       <div key={key} className="flex w-full justify-between">
-                        <p className="">{key}</p>
-                        <p className="min-w-[100px]">
+                        <p className="body-xs">{key}</p>
+                        <p className="min-w-[100px] body-xs">
                           {" "}
                           Rp {value.toLocaleString("id-ID")}
                         </p>
                       </div>
                     ))
                   ) : (
-                    <p className="">
+                    <p className="body-xs">
                       {typeof event.prize == "number"
                         ? `Rp ${event.prize.toLocaleString("id-ID")}`
                         : event.prize}
@@ -75,7 +75,7 @@ const EventCard = ({ event }: EventCardProps) => {
             )}
           </div>
           {event.note && (
-            <p className="text-[9px] px-8 md:text-xs  text-justify text-foreground/60">
+            <p className="text-[9px] px-8 md:text-xs  text-justify text-secondary/80">
               * {event.note}
             </p>
           )}

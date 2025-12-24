@@ -226,6 +226,9 @@
   .body-sm {
     @apply font-poppins text-sm leading-normal md:text-base;
   }
+  .body-xs {
+    @apply font-poppins text-xs leading-snug md:text-sm;
+  }
 
   .caption {
     @apply font-poppins text-xs text-muted-foreground leading-snug md:text-sm;

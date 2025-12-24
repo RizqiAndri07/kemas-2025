@@ -108,9 +108,9 @@ const Page = async ({ params }: Props) => {
               size={0}
               className="bg-primary/20 border-primary/40 border text-primary rounded-md p-2  size-10 md:size-14 "
             />
-            <div className="">
+            <div className="w-full">
               <h5 className="text-primary">Pendaftaran</h5>
-              <p className="body-sm text-foreground/70">
+              <p className=" body-xs text-foreground/70">
                 {detailCompetition?.open_registration}
               </p>
             </div>
@@ -120,9 +120,9 @@ const Page = async ({ params }: Props) => {
               size={16}
               className="bg-secondary/20 border-secondary/40 border text-secondary rounded-md p-2 md:size-14 size-10 "
             />
-            <div className="">
+            <div className="w-full">
               <h5 className="text-secondary">Pelaksanaan</h5>
-              <p className="body-sm text-foreground/70">
+              <p className="body-xs text-foreground/70">
                 {detailCompetition?.date}
               </p>
             </div>
@@ -132,9 +132,9 @@ const Page = async ({ params }: Props) => {
               size={16}
               className="bg-accent/20 border-accent/40 border text-accent rounded-md p-2 md:size-14 size-10 "
             />
-            <div className="">
+            <div className="w-full">
               <h5 className="text-accent">Lokasi</h5>
-              <p className="body-sm text-foreground/70">
+              <p className="body-xs text-foreground/70">
                 {detailCompetition?.location}
               </p>
             </div>
@@ -145,14 +145,14 @@ const Page = async ({ params }: Props) => {
                 size={16}
                 className="bg-accent/20 border-accent/40 border text-accent rounded-md p-2 md:size-14 size-10 "
               />
-              <div className="">
+              <div className="w-full">
                 <h5 className="text-primary">Biaya Pendaftaran</h5>
                 {detailCompetition.prize instanceof Object ? (
                   Object.entries(detailCompetition.prize).map(
                     ([key, value]) => (
                       <div
                         key={key}
-                        className="text-foreground/70 flex w-full justify-between mb-2"
+                        className="body-xs text-foreground/70 flex w-full justify-between"
                       >
                         <p className="">{key}</p>
                         <p className="min-w-[100px]">
@@ -162,7 +162,7 @@ const Page = async ({ params }: Props) => {
                     )
                   )
                 ) : (
-                  <p className="text-foreground/70">
+                  <p className="body-xs text-foreground/70">
                     Rp {Number(detailCompetition.prize).toLocaleString("id-ID")}
                   </p>
                 )}
@@ -245,9 +245,15 @@ const Page = async ({ params }: Props) => {
         </div>
       </div>
       <div className="w-full bg-background p-4 rounded-2xl shadow border border-foreground/10 sticky bottom-0">
-        {!detailCompetition?.link_registration && (
+        {detailCompetition?.link_registration ? (
           <Link href={detailCompetition?.link_registration || "#"}>
-            <Button className="w-full" size="lg" variant={"ghost"}>
+            <Button className="w-full" size="lg" variant={"gradient"}>
+              Daftar Sekarang
+            </Button>
+          </Link>
+        ) : (
+          <Link href={detailCompetition?.link_registration || "#"}>
+            <Button className="w-full" size="lg" variant={"disabled"}>
               Daftar Sekarang
             </Button>
           </Link>
