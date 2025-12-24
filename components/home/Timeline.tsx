@@ -27,7 +27,7 @@ const timelineEvents = [
     title: "MLBB Competition",
     date: "27 Januari 2026 (Online), 31 Januari 2026 (Offline)",
     description:
-      "Deskripsi bawahnya: Tournament MLBB se Jateng dan DIY yang dilaksanakan secara online dan offline",
+      "Tournament MLBB se Jateng dan DIY yang dilaksanakan secara online dan offline",
     // icon: "/assets/Typography/MLBB.png",
     icon: "/assets/Maskot/Mbak-TO.png",
   },
