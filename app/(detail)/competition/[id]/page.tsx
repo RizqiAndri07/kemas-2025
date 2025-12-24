@@ -92,12 +92,9 @@ const Page = async ({ params }: Props) => {
           </>
         )}
 
-        <div className="bg-background relative p-3  rounded-xl text-justify text-xs md:text-lg">
-          {/* <h4 className="text-primary absolute left-1/2 -translate-x-1/2 bg-white px-2 rounded-md text-center -top-6">
-            {detailCompetition?.name}
-          </h4> */}
-          {detailCompetition?.typography && (
-            <div className="pt-10 md:pt-18">
+        <div className="bg-background relative p-3 pt-12 md:pt-18 rounded-xl text-justify text-xs md:text-lg">
+          {detailCompetition?.typography ? (
+            <div className="">
               <Image
                 src={detailCompetition?.typography || ""}
                 alt={detailCompetition?.name || "Competition Typography"}
@@ -106,6 +103,12 @@ const Page = async ({ params }: Props) => {
                 className=" absolute left-1/2 -translate-x-1/2 -top-6 rounded-md bg-background p-2 md:w-32"
               />
             </div>
+          ) : (
+            <>
+              <h4 className="absolute text-center mb-2 text-primary w-fit left-1/2 wf -translate-x-1/2 -top-6 rounded-md bg-background p-1 ">
+                {detailCompetition?.name}
+              </h4>
+            </>
           )}
 
           <p>{detailCompetition?.description}</p>
