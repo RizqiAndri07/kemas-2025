@@ -7,6 +7,6 @@ export default function robots(): MetadataRoute.Robots {
       allow: "/",
       disallow: ["/login/", "/admin/", "/dashboard/"],
     },
-    sitemap: "https://kemas-2025.vercel.app/sitemap.xml",
+    sitemap: "https://www.kemasprasasti.com/sitemap.xml",
   };
 }

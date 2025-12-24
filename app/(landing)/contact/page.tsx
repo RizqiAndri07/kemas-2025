@@ -5,25 +5,25 @@ import Image from "next/image";
 import React from "react";
 
 export const metadata = {
-  title: "Contact | Prasasti 2025",
+  title: "Contact | Prasasti 2026",
   description:
-    "Prasasti 2025, KEMAS UNS Sukoharjo, Prepare with Sebelas Maret University, Event, Competition, Festival",
+    "Prasasti 2026, KEMAS UNS Sukoharjo, Prepare with Sebelas Maret University, Event, Competition, Festival",
   authors: [
-    { name: "KEMAS UNS Sukoharjo", url: "https://kemas-2025.vercel.app" },
+    { name: "KEMAS UNS Sukoharjo", url: "https://www.kemasprasasti.com" },
   ],
   icons: {
     icon: "./logo.svg",
   },
   openGraph: {
-    title: "Contact | Prasasti 2025",
+    title: "Contact | Prasasti 2026",
     description:
-      "Prasasti 2025, KEMAS UNS Sukoharjo, Prepare with Sebelas Maret University, Event, Competition, Festival",
+      "Prasasti 2026, KEMAS UNS Sukoharjo, Prepare with Sebelas Maret University, Event, Competition, Festival",
     images: [
       {
         url: "./logo.svg",
         width: 800,
         height: 600,
-        alt: "Prasasti 2025",
+        alt: "Prasasti 2026",
       },
     ],
   },

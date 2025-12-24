@@ -5,7 +5,7 @@ export const competitionData: IDataEvent[] = [
     id: 1,
     name: "Try Out",
     logo: "📖",
-    typograpghy: "/assets/Typography/TO.png",
+    typography: "/assets/Typography/TO.png",
     maskot: {
       mas: "/assets/Maskot/Mas-TO.png",
       mbak: "/assets/Maskot/Mbak-TO.png",
@@ -30,7 +30,7 @@ export const competitionData: IDataEvent[] = [
     id: 2,
     name: "Futsal Competition",
     logo: "⚽",
-    typograpghy: "/assets/Typography/Futsal.png",
+    typography: "/assets/Typography/Futsal.png",
     maskot: {
       mas: "/assets/Maskot/Mas-Futsal.png",
       mbak: "/assets/Maskot/Mbak-Futsal.png",
@@ -58,7 +58,7 @@ export const competitionData: IDataEvent[] = [
     id: 3,
     name: "MLBB Competition",
     logo: "🎮",
-    typograpghy: "/assets/Typography/MLBB.png",
+    typography: "/assets/Typography/MLBB.png",
     date: "Sabtu, 27 Januari 2026 (Online), 31 Januari 2026 (Offline)",
     location: "Lokananta",
     description:
@@ -79,7 +79,7 @@ export const competitionData: IDataEvent[] = [
     id: 4,
     name: "Accoustic And Dance Competition",
     logo: "🎸💃",
-    typograpghy: "/assets/Typography/ADC.png",
+    typography: "/assets/Typography/ADC.png",
     maskot: {
       mas: "/assets/Maskot/Mas-ADC.png",
       mbak: "/assets/Maskot/Mbak-ADC.png",
@@ -111,7 +111,7 @@ export const competitionData: IDataEvent[] = [
     id: 5,
     name: "Prasasti Festival",
     logo: "🎭",
-    // typograpghy: "",
+    // typography: "",
     date: "Minggu, 8 Februari 2026",
     location: "Neo Solo Grand Mall",
     description:

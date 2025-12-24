@@ -10,7 +10,7 @@ export const metadata: Metadata = {
   description:
     "Prasasti 2025, KEMAS UNS Sukoharjo, Prepare with Sebelas Maret University, Event, Competition, Festival",
   authors: [
-    { name: "KEMAS UNS Sukoharjo", url: "https://kemas-2025.vercel.app" },
+    { name: "KEMAS UNS Sukoharjo", url: "https://www.kemasprasasti.com" },
   ],
   icons: {
     icon: "./logo.svg",

@@ -11,10 +11,10 @@ const EventCard = ({ event }: EventCardProps) => {
     <div className="bg-background rounded-2xl flex flex-col ">
       <div className=" flex-1 min-h-[200px] p-6 flex flex-col justify-center items-center h-36 md:h-60 text-center relative overflow-hidden bg-linear-to-r rounded-t-2xl from-primary/20 to-accent/20">
         <div className="absolute top-0 right-0 w-32 h-32 rounded-full blur-2xl opacity-30" />
-        {event.typograpghy ? (
+        {event.typography ? (
           <>
             <Image
-              src={event.typograpghy}
+              src={event.typography}
               alt={event.name}
               width={200}
               height={200}

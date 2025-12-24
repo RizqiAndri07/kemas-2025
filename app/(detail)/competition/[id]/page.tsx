@@ -8,6 +8,7 @@ import {
   CircleUserRound,
   Coins,
   Download,
+  icons,
   // icons,
   Landmark,
   LocateFixedIcon,
@@ -40,31 +41,26 @@ export async function generateMetadata({ params }: Props) {
 
   if (!data) {
     return {
-      title: "Competition | Prasasti 2025",
+      title: "Competition | Prasasti 2026",
       robots: { index: false },
     };
   }
 
   return {
-    title: `${data.name} | Prasasti 2025`,
+    title: `${data.name} | Prasasti 2026`,
     description: data.description,
-    images: [
-      {
-        url: "/logo.svg",
-        width: 800,
-        height: 600,
-        alt: "Prasasti 2025",
-      },
-    ],
+    icons: {
+      icon: data.typography || "./logo.svg",
+    },
     openGraph: {
-      title: `${data.name} | Prasasti 2025`,
+      title: `${data.name} | Prasasti 2026`,
       description: data.description,
       images: [
         {
           url: "./logo.svg",
           width: 800,
           height: 600,
-          alt: "Prasasti 2025",
+          alt: "Prasasti 2026",
         },
       ],
     },
@@ -96,16 +92,16 @@ const Page = async ({ params }: Props) => {
           </>
         )}
 
-        <div className="bg-background relative p-3 pt-10 rounded-xl text-justify text-xs md:text-lg">
+        <div className="bg-background relative p-3 pt-10 md:pt-18 rounded-xl text-justify text-xs md:text-lg">
           {/* <h4 className="text-primary absolute left-1/2 -translate-x-1/2 bg-white px-2 rounded-md text-center -top-6">
             {detailCompetition?.name}
           </h4> */}
           <Image
-            src={detailCompetition?.typograpghy || ""}
+            src={detailCompetition?.typography || ""}
             alt={detailCompetition?.name || "Competition Typography"}
             width={100}
             height={100}
-            className=" absolute left-1/2 -translate-x-1/2 -top-6 rounded-md bg-background p-2 md:w-72"
+            className=" absolute left-1/2 -translate-x-1/2 -top-6 rounded-md bg-background p-2 md:w-32"
           />
           <p>{detailCompetition?.description}</p>
         </div>

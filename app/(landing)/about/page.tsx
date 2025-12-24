@@ -6,25 +6,25 @@ import React from "react";
 import { CarouselComponents } from "./CarouselComponents";
 // import { CarouselComponents } from "./CarouselComponents";
 export const metadata = {
-  title: "About | Prasasti 2025",
+  title: "About | Prasasti 2026",
   description:
-    "Prasasti 2025, KEMAS UNS Sukoharjo, Prepare with Sebelas Maret University, Event, Competition, Festival",
+    "Prasasti 2026, KEMAS UNS Sukoharjo, Prepare with Sebelas Maret University, Event, Competition, Festival",
   authors: [
-    { name: "KEMAS UNS Sukoharjo", url: "https://kemas-2025.vercel.app" },
+    { name: "KEMAS UNS Sukoharjo", url: "https://www.kemasprasasti.com" },
   ],
   icons: {
     icon: "./logo.svg",
   },
   openGraph: {
-    title: "About | Prasasti 2025",
+    title: "About | Prasasti 2026",
     description:
-      "Prasasti 2025, KEMAS UNS Sukoharjo, Prepare with Sebelas Maret University, Event, Competition, Festival",
+      "Prasasti 2026, KEMAS UNS Sukoharjo, Prepare with Sebelas Maret University, Event, Competition, Festival",
     images: [
       {
         url: "./logo.svg",
         width: 800,
         height: 600,
-        alt: "Prasasti 2025",
+        alt: "Prasasti 2026",
       },
     ],
   },
@@ -57,10 +57,10 @@ const page = () => {
           className="w-full"
         />
       </div>
-        <h2 className="text-primary text-center mb-6">Galeri PRASASTI</h2>
+      <h2 className="text-primary text-center mb-6">Galeri PRASASTI</h2>
       <div className="flex gap-x-14 justify-evenly w-full flex-col md:flex-row">
-        <CarouselComponents  foto={images} folder="1"/>
-        <CarouselComponents  foto={images2} folder="2" />
+        <CarouselComponents foto={images} folder="1" />
+        <CarouselComponents foto={images2} folder="2" />
       </div>
     </div>
   );
