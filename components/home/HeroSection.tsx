@@ -17,7 +17,7 @@ const HeroSection = () => {
           transition={{ duration: 0.4 }}
           className="relative flex flex-col items-center "
         >
-          <h1 className=" text-primary display">PRASASTI 10</h1>
+          <h1 className=" text-primary display">PRASASTI#10</h1>
           {/* <Image alt="logo" src={"/logo.png"} width={200} height={100} /> */}
         </motion.div>
         <motion.p
@@ -27,8 +27,7 @@ const HeroSection = () => {
           transition={{ duration: 0.4 }}
           className="body text-foreground/60 md:w-[80dvh]"
         >
-          Event Tahunan Multi Kompetisi tinkat SMA/SMK Terbesar di Sukoharjo.
-          Tunjukkan bakan dan raih prestasimu !
+          Event Tahunan Multi Kompetisi Tingkat SMA/SMK Terbesar di Sukoharjo. Tunjukkan Bakat dan Raih Prestasimu !
         </motion.p>
         <motion.div
           initial={{ scale: 0.9, opacity: 0 }}

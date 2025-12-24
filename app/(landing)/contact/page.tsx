@@ -46,11 +46,11 @@ const page = async () => {
               <tbody>
                 <tr>
                   <td className="text-left pr-10">Senin - Jumat</td>
-                  <td className="text-right">08.00 - 16.00 WIB</td>
+                  <td className="text-right">08.00 - 20.00 WIB</td>
                 </tr>
                 <tr>
                   <td className="text-left pr-10">Sabtu - Minggu</td>
-                  <td className="text-right">09.00 - 14.00 WIB</td>
+                  <td className="text-right">08.00 - 21.00 WIB</td>
                 </tr>
               </tbody>
             </table>
@@ -58,7 +58,10 @@ const page = async () => {
           <div className="content">
             <h5 className="text-primary">Media Sosial</h5>
             <div className="grid grid-cols-2 gap-4">
-              <div className=" p-3 flex flex-col justify-center items-center rounded">
+              <a
+                href="https://www.instagram.com/kemasuns"
+                className=" p-3 flex flex-col justify-center items-center rounded"
+              >
                 <Instagram
                   size={16}
                   className="bg-secondary/30 p-1 size-8 text-secondary rounded-md inline-block"
@@ -67,8 +70,11 @@ const page = async () => {
                 <p className="text-xs font-light text-foreground/70">
                   @kemasprasasti
                 </p>
-              </div>
-              <div className="p-3 flex flex-col justify-center items-center ">
+              </a>
+              <a
+                href="https://www.youtube.com/@kemasuns177"
+                className="p-3 flex flex-col justify-center items-center "
+              >
                 <Youtube
                   size={16}
                   className="bg-secondary/30 p-1 size-8 text-secondary rounded-md inline-block"
@@ -77,8 +83,11 @@ const page = async () => {
                 <p className="text-xs font-light text-foreground/70">
                   @kemasprasasti
                 </p>
-              </div>
-              <div className="p-3 flex flex-col justify-center items-center ">
+              </a>
+              <a
+                href="https://www.tiktok.com/@kemasuns_"
+                className="p-3 flex flex-col justify-center items-center "
+              >
                 <Image
                   width={16}
                   height={16}
@@ -90,8 +99,11 @@ const page = async () => {
                 <p className="text-xs font-light text-foreground/70">
                   @kemasprasasti
                 </p>
-              </div>
-              <div className="p-3 flex flex-col justify-center items-center ">
+              </a>
+              <a
+                href="mailto:kemasprasasti@gmail.com"
+                className="p-3 flex flex-col justify-center items-center "
+              >
                 <Mail
                   width={16}
                   height={16}
@@ -99,9 +111,9 @@ const page = async () => {
                 />
                 <p className="text-xs font-medium">Gmail</p>
                 <p className="text-xs font-light text-foreground/70">
-                  @kemasprasasti
+                  kemasprasasti@gmail.com
                 </p>
-              </div>
+              </a>
             </div>
           </div>
         </div>

@@ -1,14 +1,16 @@
 import { Button } from "@/components/ui/button";
 import { competitionData } from "@/data/competition";
+import Image from "next/image";
 import {
   ArrowLeft,
   Calendar,
   CircleUserRound,
+  Coins,
   Download,
-  icons,
+  // icons,
   Landmark,
 } from "lucide-react";
-import { image } from "motion/react-client";
+// import { image } from "motion/react-client";
 import Link from "next/link";
 
 // import Register from "./Register";
@@ -84,8 +86,19 @@ const Page = async ({ params }: Props) => {
       </Link>
       <div className="flex flex-col w-full px-5 container md:mx-auto justify-center items-center space-y-4 relative">
         <div className="bg-accent/50 blur-3xl absolute -top-3 -z-30 w-full h-40 overflow-x-clip"></div>
-        <h1>{detailCompetition?.logo}</h1>
+        {detailCompetition?.maskot ? (
+          <div className="flex gap-4 justify-center items-center">
+            {Object.entries(detailCompetition.maskot).map(([key, value]) => (
+              <Image key={key} src={value} alt={key} width={150} height={150} />
+            ))}
+          </div>
+        ) : (
+          <>
+            <h1>{detailCompetition?.logo}</h1>
+          </>
+        )}
         <h4 className="text-primary">{detailCompetition?.name}</h4>
+
         <p className="bg-background p-3 rounded-xl text-justify text-xs md:text-lg">
           {detailCompetition?.description}
         </p>
@@ -126,8 +139,38 @@ const Page = async ({ params }: Props) => {
               </p>
             </div>
           </div>
+          {detailCompetition?.prize && (
+            <div className="bg-background w-full flex items-center gap-4 px-5 py-3 md:px-10  md:py-7 rounded-2xl shadow border border-accent/40">
+              <Coins
+                size={16}
+                className="bg-accent/20 border-accent/40 border text-accent rounded-md p-2 md:size-14 size-10 "
+              />
+              <div className="">
+                <h5 className="text-primary">Biaya Pendaftaran</h5>
+                {detailCompetition.prize instanceof Object ? (
+                  Object.entries(detailCompetition.prize).map(
+                    ([key, value]) => (
+                      <div
+                        key={key}
+                        className="text-foreground/70 flex w-full justify-between mb-2"
+                      >
+                        <p className="">{key}</p>
+                        <p className="min-w-[100px]">
+                          Rp {value.toLocaleString("id-ID")}
+                        </p>
+                      </div>
+                    )
+                  )
+                ) : (
+                  <p className="text-foreground/70">
+                    Rp {Number(detailCompetition.prize).toLocaleString("id-ID")}
+                  </p>
+                )}
+              </div>
+            </div>
+          )}
         </div>
-        {/* {detailCompetition?.berkas}j */}
+
         <div className="flex flex-col md:flex-row w-full gap-4">
           {detailCompetition?.berkas && (
             <div className="w-full bg-background p-5 space-y-3 rounded-xl shadow">
@@ -137,9 +180,9 @@ const Page = async ({ params }: Props) => {
                   Object.entries(detailCompetition.berkas).map(
                     ([key, value]) => (
                       <a
-                        href={value}
+                        href={`/documents/${value}`}
                         key={key}
-                        target="_blank"
+                        download={true}
                         rel="noopener noreferrer"
                         className="w-full"
                       >
@@ -202,11 +245,13 @@ const Page = async ({ params }: Props) => {
         </div>
       </div>
       <div className="w-full bg-background p-4 rounded-2xl shadow border border-foreground/10 sticky bottom-0">
-        <Link href={detailCompetition?.link_registration || "#"}>
-          <Button className="w-full" size="lg" variant={"gradient"}>
-            Daftar Sekarang
-          </Button>
-        </Link>
+        {!detailCompetition?.link_registration && (
+          <Link href={detailCompetition?.link_registration || "#"}>
+            <Button className="w-full" size="lg" variant={"ghost"}>
+              Daftar Sekarang
+            </Button>
+          </Link>
+        )}
       </div>
       {/* // TODO: add connct to registration page */}
     </div>

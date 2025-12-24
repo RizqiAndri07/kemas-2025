@@ -8,9 +8,10 @@ const Footer = () => {
     <div className="bg-primary text-background px-7 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 py-20">
       <div>
         <Image alt="logo" src={"/logo.png"} width={100} height={50} />
-        <p className="body my-4">
-          Event tahunan multi-kompetisi terbesar untuk anak muda Indonesia. Mari
-          bergabung dan tunjukkan bakatmu!
+        <p className="body-sm my-4 text-justify md:max-w-2xs">
+          Event tahunan multi-kompetisi berskala besar di wilayah Jawa
+          Tengah–DIY dan Solo Raya. Mari bergabung dan tunjukkan potensi
+          terbaikmu.
         </p>
       </div>
       <div className="my-4">
@@ -58,21 +59,21 @@ const Footer = () => {
             <a
               target="_blank"
               href="https://maps.app.goo.gl/UBTfdvVJikmBMf9VA"
-              className="body "
+              className="body-sm "
             >
-              Sukoharajo, Jawa Tengah
+              Sukoharjo,Jawa Tengah
             </a>
           </li>
           <li className="flex gap-2">
             <Mail className="text-accent" />
-            <a href="mailto:kemasunsprasasti@gmail.com" className="body ">
+            <a href="mailto:kemasunsprasasti@gmail.com" className="body-sm ">
               kemasunsprasasti@gmail.com
             </a>
           </li>
           <li className="flex gap-2">
             <Phone className="text-accent" />
-            <a href="tel:+628822791142" className="body ">
-              08822791142
+            <a href="tel:+6289516217704" className="body-sm ">
+              089516217704
             </a>
           </li>
         </ul>

@@ -12,7 +12,7 @@ const WhatsNew = () => {
           viewport={{ once: true, amount: 0.3 }}
           transition={{ duration: 0.4 }}
         >
-          <h4 className="text-primary ">Whats New di Prasasti 10? </h4>
+          <h4 className="text-primary ">Apa yang Baru di PRASASTI#10? </h4>
           <p className="body text-foreground/80 mb-3">
             Tahun ini lebih spesial! Berbagai inovasi dan peningkatan untuk
             pengalaman terbaik.
@@ -31,7 +31,7 @@ const WhatsNew = () => {
             </div>
             <p className="body-lg text-primary">Hadiah Lebih Besar</p>
             <p className="body text-foreground/60">
-              Total hadiah mencapai 10 juta rupiah !
+              Total hadiah mencapai jutaan rupiah
             </p>
           </motion.div>
           <motion.div
@@ -46,7 +46,7 @@ const WhatsNew = () => {
             </div>
             <p className="body-lg text-secondary">Lebih Banyak Peserta</p>
             <p className="body text-foreground/60">
-              Terbuka untuk seluruh Indonesia!
+              Terbuka untuk Se-Jateng & DIY dan Se-Solo raya
             </p>
           </motion.div>
           <motion.div

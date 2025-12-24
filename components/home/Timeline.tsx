@@ -2,42 +2,50 @@
 
 import { Clock } from "lucide-react";
 import { motion } from "motion/react";
+import Image from "next/image";
 
 const timelineEvents = [
   {
     id: 1,
     title: "Try Out",
-    date: "1 Januari 2025",
-    description: "Mulai melakukan pendaftaran pada website resmi kami.",
-    icon: "🚀",
+    date: "18 Januari 2026",
+    description:
+      "Ujian TO berbasis CBT bagi siswa SMA/SMK/MA dan gap year, se Solo Raya",
+    // icon: "/assets/Typography/TO.png",
+    icon: "/assets/Maskot/Mas-TO.png",
   },
   {
     id: 2,
     title: "Futsal Competition",
-    date: "10 Januari 2025",
-    description: "Proses seleksi berkas dan administrasi.",
-    icon: "📄",
+    date: "24 - 25 Januari 2026",
+    description: "Turnamen futsal antar SMA/SMK/MA Sederajat se Solo Raya",
+    // icon: "/assets/Typography/Futsal.png",
+    icon: "/assets/Maskot/Mas-Futsal.png",
   },
   {
     id: 3,
     title: "MLBB Competition",
-    date: "20 Januari 2025",
-    description: "Peserta yang lolos akan diumumkan melalui email.",
-    icon: "🎉",
+    date: "27 Januari 2026 (Online), 31 Januari 2026 (Offline)",
+    description:
+      "Deskripsi bawahnya: Tournament MLBB se Jateng dan DIY yang dilaksanakan secara online dan offline",
+    // icon: "/assets/Typography/MLBB.png",
+    icon: "/assets/Maskot/Mbak-TO.png",
   },
   {
     id: 4,
     title: "ADC Competition",
-    date: "25 Januari 2025",
-    description: "Kegiatan workshop intensif selama 3 hari.",
-    icon: "📚",
+    date: "7 Februari 2026",
+    description:
+      " Lomba Acoustic & Dance dengan kategori umur 15-25 tahun se eks-Surakarta",
+    // icon: "/assets/Typography/ADC.png",
+    icon: "/assets/Maskot/Mas-ADC.png",
   },
   {
     id: 5,
     title: "Prasasti Festival",
-    date: "25 Januari 2025",
-    description: "Kegiatan workshop intensif selama 3 hari.",
-    icon: "📚",
+    date: "8 Februari 2026",
+    description: "Puncak dari seluruh rangkaian acara PRASASTI#10",
+    icon: "/assets/Maskot/Mbak-ADC.png",
   },
 ];
 const Timeline = () => {
@@ -84,18 +92,26 @@ const Timeline = () => {
                 whileInView={{ scale: 1, opacity: 1 }}
                 viewport={{ once: true, amount: 0.3 }}
                 transition={{ duration: 0.4 }}
-                className="
+                className=" pt-32
                   p-6 rounded-2xl origin-center
                   bg-white/70 backdrop-blur-xl
                   border border-[#B1E1FF]/30
-                  shadow-[0_4px_20px_rgba(177,225,255,0.2)]
+                  shadow-[0_4px_20px_rgba(177,225,255,0.2)] relative
                 "
               >
-                <div className="text-4xl mb-3">{event.icon}</div>
+                {event.icon && (
+                  <Image
+                    src={event.icon}
+                    alt={event.title}
+                    width={120}
+                    height={120}
+                    className=" absolute -top-10 "
+                  />
+                )}
 
-                <h3 className="text-[#6A1B9A] mb-2 font-semibold">
+                <h4 className="text-secondary mb-2 font-medium">
                   {event.title}
-                </h3>
+                </h4>
 
                 <div className="flex items-center gap-2 text-sm text-[#FF7688] mb-3">
                   <Clock className="w-4 h-4" />

@@ -8,7 +8,7 @@ const Join = () => {
     <div className="bg-linear-to-br from-primary to-secondary p-5 m-5 rounded-2xl text-background flex flex-col items-center justify-center">
       <h5>Siap bergabung?</h5>
       <p className="body my-5 text-center">
-        Daftarkan dirimu sekarang dan jadilah bagian dari Prasasti 10!
+        Daftarkan dirimu sekarang dan jadilah bagian dari PRASASTI#10!
       </p>
       <Link
         href={"/competition"}
