@@ -10,7 +10,7 @@ export const competitionData: IDataEvent[] = [
       mas: "/assets/Maskot/Mas-TO.png",
       mbak: "/assets/Maskot/Mbak-TO.png",
     },
-    date: "Minggu, 18 Januari 2026",
+    date: ["Minggu, 18 Januari 2026"],
     location: "SMA Negeri 1 Sukoharjo",
     description:
       "Kegiatan Try Out Event PRASASTI#10 2026 KEMAS UNS merupakan rangkaian acara PRASASTI#10 2026 yang bertujuan untuk membantu siswa SMA/MK/MA dan siswa Gap Year yang akan masuk Perguruan Tinggi Negeri. Try Out Event PRASASTI#10 2026 diselenggarakan pada hari Minggu, 18 Januari 2026 di SMA Negeri 1 Sukoharjo secara offline dengan pengerjaan online berbasis SIP NF. Memiliki beberapa rangkaian acara seperti Pengerjaan Soal, Expo Kampus, Food Bazaar, Parade Universitas, Parade Fakultas, Pembahasan Soal, Games, Awarding dan Penampilan Guest Star.",
@@ -35,7 +35,7 @@ export const competitionData: IDataEvent[] = [
       mas: "/assets/Maskot/Mas-Futsal.png",
       mbak: "/assets/Maskot/Mbak-Futsal.png",
     },
-    date: "Sabtu-Minggu, 24-25 Januari 2026",
+    date: ["Sabtu, 24 Januari 2026", "Minggu, 25 Januari 2026"],
     location: "GOR Bung Karno Sukoharjo",
     description:
       "Futsal Competition PRASASTI#10 2026 KEMAS UNS merupakan tournament futsal antar SMA/SMK/MA sederajat se-Solo Raya yang bertujuan untuk mengembangkan minat bakat serta menumbuhkan semangat kompetitif dan jiwa sportivitas generasi muda sekarang.",
@@ -59,7 +59,10 @@ export const competitionData: IDataEvent[] = [
     name: "MLBB Competition",
     logo: "🎮",
     typography: "/assets/Typography/MLBB.png",
-    date: "Sabtu, 27 Januari 2026 (Online), 31 Januari 2026 (Offline)",
+    date: [
+      "Sabtu, 27 Januari 2026 (Online)",
+      "Sabtu, 31 Januari 2026 (Offline)",
+    ],
     location: "Lokananta",
     description:
       "Mobile Legends Competition PRASASTI#10 2026 KEMAS UNS merupakan sebuah tournament games yang akan dilaksanakan secara online dan offline, yang bertujuan sebagai ajang pembuktian kemampuan tim-tim lokal di tingkat regional, sekaligus membuka peluang menuju kompetisi yang lebih besar. Tournament ini akan memperebutkan juara 1, 2, dan 3 serta penghargaan Most Valuable Player (MVP)",
@@ -84,7 +87,7 @@ export const competitionData: IDataEvent[] = [
       mas: "/assets/Maskot/Mas-ADC.png",
       mbak: "/assets/Maskot/Mbak-ADC.png",
     },
-    date: "Sabtu, 7 Februari 2026",
+    date: ["Sabtu, 7 Februari 2026"],
     location: "Atrium NEO Solo Grand Mall",
     description:
       "Kegiatan Acoustic and Dance Competition PRASASTI#10 2026 KEMAS UNS merupakan suatu ajang kompetisi acoustic dan dance yang diperuntukkan bagi masyarakat umum berusia antara 15–25 tahun se-Eks Karesidenan Surakarta, dengan tujuan untuk menunjukkan potensi mereka dalam bidang seni musik dan seni tari",
@@ -112,7 +115,7 @@ export const competitionData: IDataEvent[] = [
     name: "Prasasti Festival",
     logo: "🎭",
     // typography: "",
-    date: "Minggu, 8 Februari 2026",
+    date: ["Minggu, 8 Februari 2026"],
     location: "Neo Solo Grand Mall",
     description:
       "Kegiatan Prasasti Festival ini merupakan puncak dari seluruh rangkaian acara yang ada ( penutup) yang akan disi dengan berbagai penampilan menarik serta akan diselenggarakan secara offline dan untuk masyarakat umum. Tujuannya untuk memperkenalkan Keluarga Mahasiswa Sukoharjo UNS kepada seluruh masyarakat yang telah tergabung dalam acara. ",

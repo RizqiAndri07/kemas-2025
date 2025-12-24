@@ -92,17 +92,22 @@ const Page = async ({ params }: Props) => {
           </>
         )}
 
-        <div className="bg-background relative p-3 pt-10 md:pt-18 rounded-xl text-justify text-xs md:text-lg">
+        <div className="bg-background relative p-3  rounded-xl text-justify text-xs md:text-lg">
           {/* <h4 className="text-primary absolute left-1/2 -translate-x-1/2 bg-white px-2 rounded-md text-center -top-6">
             {detailCompetition?.name}
           </h4> */}
-          <Image
-            src={detailCompetition?.typography || ""}
-            alt={detailCompetition?.name || "Competition Typography"}
-            width={100}
-            height={100}
-            className=" absolute left-1/2 -translate-x-1/2 -top-6 rounded-md bg-background p-2 md:w-32"
-          />
+          {detailCompetition?.typography && (
+            <div className="pt-10 md:pt-18">
+              <Image
+                src={detailCompetition?.typography || ""}
+                alt={detailCompetition?.name || "Competition Typography"}
+                width={100}
+                height={100}
+                className=" absolute left-1/2 -translate-x-1/2 -top-6 rounded-md bg-background p-2 md:w-32"
+              />
+            </div>
+          )}
+
           <p>{detailCompetition?.description}</p>
         </div>
         <div className="grid md:grid-cols-2 gap-4  w-full">
@@ -125,9 +130,11 @@ const Page = async ({ params }: Props) => {
             />
             <div className="w-full">
               <h5 className="text-secondary">Pelaksanaan</h5>
-              <p className="body-xs text-foreground/70">
-                {detailCompetition?.date}
-              </p>
+              {detailCompetition?.date?.map((date, index) => (
+                <p key={index} className="body-xs text-foreground/70">
+                  {date}
+                </p>
+              ))}
             </div>
           </div>
           <div className="bg-background w-full flex items-center gap-4 px-5 py-3 md:px-10  md:py-7 rounded-2xl shadow border border-accent/40">

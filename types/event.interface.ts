@@ -4,7 +4,7 @@ export interface IDataEvent {
   logo: string;
   typography?: string;
   maskot?: Record<string, string>;
-  date: string;
+  date?: string[];
   location: string;
   venue?: string;
   description: string;
