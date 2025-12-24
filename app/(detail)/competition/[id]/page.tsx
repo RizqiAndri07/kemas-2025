@@ -3,12 +3,14 @@ import { competitionData } from "@/data/competition";
 import Image from "next/image";
 import {
   ArrowLeft,
+  ArrowRightCircle,
   Calendar,
   CircleUserRound,
   Coins,
   Download,
   // icons,
   Landmark,
+  LocateFixedIcon,
 } from "lucide-react";
 // import { image } from "motion/react-client";
 import Link from "next/link";
@@ -27,10 +29,6 @@ export const dynamic = "force-static";
 export const dynamicParams = true;
 
 export async function generateStaticParams() {
-  console.log(
-    "STATIC IDS:",
-    competitionData.map((i) => i.id)
-  );
   return competitionData.map((item) => ({
     id: String(item.id),
   }));
@@ -39,7 +37,7 @@ export async function generateStaticParams() {
 export async function generateMetadata({ params }: Props) {
   const { id } = await params;
   const data = competitionData.find((c) => String(c.id) === id);
-  console.log("Metadata data:", data);
+
   if (!data) {
     return {
       title: "Competition | Prasasti 2025",
@@ -97,11 +95,20 @@ const Page = async ({ params }: Props) => {
             <h1>{detailCompetition?.logo}</h1>
           </>
         )}
-        <h4 className="text-primary">{detailCompetition?.name}</h4>
 
-        <p className="bg-background p-3 rounded-xl text-justify text-xs md:text-lg">
-          {detailCompetition?.description}
-        </p>
+        <div className="bg-background relative p-3 pt-10 rounded-xl text-justify text-xs md:text-lg">
+          {/* <h4 className="text-primary absolute left-1/2 -translate-x-1/2 bg-white px-2 rounded-md text-center -top-6">
+            {detailCompetition?.name}
+          </h4> */}
+          <Image
+            src={detailCompetition?.typograpghy || ""}
+            alt={detailCompetition?.name || "Competition Typography"}
+            width={100}
+            height={100}
+            className=" absolute left-1/2 -translate-x-1/2 -top-6 rounded-md bg-background p-2 md:w-72"
+          />
+          <p>{detailCompetition?.description}</p>
+        </div>
         <div className="grid md:grid-cols-2 gap-4  w-full">
           <div className="bg-background w-full flex items-center gap-4 px-5 py-3 md:px-10  md:py-7 rounded-2xl shadow border border-primary/40">
             <Calendar
@@ -163,14 +170,17 @@ const Page = async ({ params }: Props) => {
                   )
                 ) : (
                   <p className="body-xs text-foreground/70">
-                    Rp {Number(detailCompetition.prize).toLocaleString("id-ID")}
+                    {detailCompetition.prize === "Free Entry"
+                      ? "Free Entry"
+                      : `Rp ${Number(detailCompetition.prize).toLocaleString(
+                          "id-ID"
+                        )}`}
                   </p>
                 )}
               </div>
             </div>
           )}
         </div>
-
         <div className="flex flex-col md:flex-row w-full gap-4">
           {detailCompetition?.berkas && (
             <div className="w-full bg-background p-5 space-y-3 rounded-xl shadow">
@@ -246,15 +256,17 @@ const Page = async ({ params }: Props) => {
       </div>
       <div className="w-full bg-background p-4 rounded-2xl shadow border border-foreground/10 sticky bottom-0">
         {detailCompetition?.link_registration ? (
-          <Link href={detailCompetition?.link_registration || "#"}>
+          <Link href={detailCompetition?.link_registration}>
             <Button className="w-full" size="lg" variant={"gradient"}>
               Daftar Sekarang
+              <ArrowRightCircle />
             </Button>
           </Link>
         ) : (
-          <Link href={detailCompetition?.link_registration || "#"}>
-            <Button className="w-full" size="lg" variant={"disabled"}>
-              Daftar Sekarang
+          <Link href={detailCompetition?.venue || "#"}>
+            <Button className="w-full" size="lg" variant={"gradient"}>
+              Cek Lokasi
+              <LocateFixedIcon />
             </Button>
           </Link>
         )}

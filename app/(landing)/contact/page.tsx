@@ -81,7 +81,7 @@ const page = async () => {
                 />
                 <p className="text-xs font-medium">Youtube</p>
                 <p className="text-xs font-light text-foreground/70">
-                  @kemasprasasti
+                  @kemasuns177
                 </p>
               </a>
               <a

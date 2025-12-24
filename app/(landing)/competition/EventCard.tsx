@@ -65,9 +65,11 @@ const EventCard = ({ event }: EventCardProps) => {
                     ))
                   ) : (
                     <p className="body-xs">
-                      {typeof event.prize == "number"
-                        ? `Rp ${event.prize.toLocaleString("id-ID")}`
-                        : event.prize}
+                      {typeof event.prize == "number" ? (
+                        `Rp ${event.prize.toLocaleString("id-ID")}`
+                      ) : (
+                        <span className="italic">{event.prize}</span>
+                      )}
                     </p>
                   )}
                 </div>

@@ -8,16 +8,16 @@ const timelineEvents = [
   {
     id: 1,
     title: "Try Out",
-    date: "18 Januari 2026",
+    date: ["18 Januari 2026"],
     description:
-      "Ujian TO berbasis CBT bagi siswa SMA/SMK/MA dan gap year, se Solo Raya",
+      "Ujian TO online berbasis SIP NF bagi siswa SMA/SMK/MA dan gap year, se Solo Raya",
     // icon: "/assets/Typography/TO.png",
     icon: "/assets/Maskot/Mas-TO.png",
   },
   {
     id: 2,
     title: "Futsal Competition",
-    date: "24 - 25 Januari 2026",
+    date: ["24 Januari 2026", "25 Januari 2026"],
     description: "Turnamen futsal antar SMA/SMK/MA Sederajat se Solo Raya",
     // icon: "/assets/Typography/Futsal.png",
     icon: "/assets/Maskot/Mas-Futsal.png",
@@ -25,7 +25,7 @@ const timelineEvents = [
   {
     id: 3,
     title: "MLBB Competition",
-    date: "27 Januari 2026 (Online), 31 Januari 2026 (Offline)",
+    date: ["27 Januari 2026 (Online)", "31 Januari 2026 (Offline)"],
     description:
       "Tournament MLBB se Jateng dan DIY yang dilaksanakan secara online dan offline",
     // icon: "/assets/Typography/MLBB.png",
@@ -34,7 +34,7 @@ const timelineEvents = [
   {
     id: 4,
     title: "ADC Competition",
-    date: "7 Februari 2026",
+    date: ["7 Februari 2026"],
     description:
       " Lomba Acoustic & Dance dengan kategori umur 15-25 tahun se eks-Surakarta",
     // icon: "/assets/Typography/ADC.png",
@@ -43,7 +43,7 @@ const timelineEvents = [
   {
     id: 5,
     title: "Prasasti Festival",
-    date: "8 Februari 2026",
+    date: ["8 Februari 2026"],
     description: "Puncak dari seluruh rangkaian acara PRASASTI#10",
     icon: "/assets/Maskot/Mbak-ADC.png",
   },
@@ -59,7 +59,6 @@ const Timeline = () => {
       </div>
 
       <div className="max-w-4xl mx-auto relative">
-        {/* Vertical Line */}
         <div
           className="
             absolute left-8 md:left-1/2 top-0 bottom-0 w-1
@@ -105,7 +104,7 @@ const Timeline = () => {
                     alt={event.title}
                     width={120}
                     height={120}
-                    className=" absolute -top-10 "
+                    className=" absolute -top-10 drop-shadow-md  drop-shadow-accent "
                   />
                 )}
 
@@ -115,14 +114,15 @@ const Timeline = () => {
 
                 <div className="flex items-center gap-2 text-sm text-[#FF7688] mb-3">
                   <Clock className="w-4 h-4" />
-                  <span>{event.date}</span>
+                  <div className="flex flex-col">
+                    {event.date.map((date, idx) => (
+                      <span key={idx}>{date}</span>
+                    ))}
+                  </div>
                 </div>
-
                 <p className="text-gray-600 text-sm">{event.description}</p>
               </motion.div>
             </div>
-
-            {/* Node */}
             <div className="absolute left-3 md:left-1/2 md:-translate-x-1/2">
               <div
                 className="

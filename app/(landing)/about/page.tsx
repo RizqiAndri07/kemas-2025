@@ -1,4 +1,6 @@
 import Image from "next/image";
+import fs from "fs";
+import path from "path";
 import React from "react";
 export const metadata = {
   title: "About | Prasasti 2025",
@@ -24,15 +26,18 @@ export const metadata = {
     ],
   },
 };
+
 const page = () => {
+  const imagesDir = path.join(process.cwd(), "public/assets/foto-prasasti");
+  const images = fs.readdirSync(imagesDir);
   return (
     <div className="flex items-center justify-center mt-20 flex-col space-y-10">
       <p className="text-center body-sm  bg-accent/50 px-8 py-2 rounded-full body-lg w-xs md:w-md text-primary">
-        Mengenal Prasasti Lebih Jauh
+        Mengenal PRASASTI Lebih Jauh
       </p>
       <div className="bg-background rounded-2xl shadow-md w-full justify-between grid grid-cols-1 md:grid-cols-2 items-center text-center p-10 md:p-20 h-fit gap-10">
         <div className="w-full text-start">
-          <h3 className="text-primary ">Sejarah Singkat Prasasti</h3>
+          <h3 className="text-primary ">Sejarah Singkat PRASASTI</h3>
           <p className="text-justify text-xs">
             PRASASTI (Prepare with Sebelas Maret University) pertama kali
             diprakarsai oleh KEMAS UNS sebagai bentuk pengabdian kepada
@@ -48,15 +53,18 @@ const page = () => {
         />
       </div>
       <div className="galeri">
-        <h2 className="text-primary text-center mb-6">Galeri Prasasti</h2>
-        <div className="flex flex-wrap gap-3 md:gap-8 justify-center">
-          <div className="bg-background w-30 h-36 md:w-80 md:h-96 shadow-md rounded-2xl"></div>
-          <div className="bg-background w-30 h-36 md:w-80 md:h-96 shadow-md rounded-2xl"></div>
-          <div className="bg-background w-30 h-36 md:w-80 md:h-96 shadow-md rounded-2xl"></div>
-          <div className="bg-background w-30 h-36 md:w-80 md:h-96 shadow-md rounded-2xl"></div>
-          <div className="bg-background w-30 h-36 md:w-80 md:h-96 shadow-md rounded-2xl"></div>
-          <div className="bg-background w-30 h-36 md:w-80 md:h-96 shadow-md rounded-2xl"></div>
-          <div className="bg-background w-30 h-36 md:w-80 md:h-96 shadow-md rounded-2xl"></div>
+        <h2 className="text-primary text-center mb-6">Galeri PRASASTI</h2>
+        <div className="flex flex-wrap border">
+          {images.map((image, index) => (
+            <Image
+              key={index}
+              src={`/assets/foto-prasasti/${image}`}
+              alt={`Foto PRASASTI ${index + 1}`}
+              width={500}
+              height={200}
+              className="bg-background w-fit h-fit md:w-80 md:h-96"
+            />
+          ))}
         </div>
       </div>
     </div>

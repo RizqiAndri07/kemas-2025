@@ -47,7 +47,6 @@ export const metadata = {
 };
 const page = async () => {
   const event = await getCompetition();
-  console.log(event);
   return (
     <div className="text-center py-20">
       <HeroSection />
