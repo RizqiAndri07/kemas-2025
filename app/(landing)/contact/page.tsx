@@ -5,7 +5,7 @@ import Image from "next/image";
 import React from "react";
 
 export const metadata = {
-  title: "Contact | Prasasti 2026",
+  title: "Contact - PRASASTI 2026",
   description:
     "Prasasti 2026, KEMAS UNS Sukoharjo, Prepare with Sebelas Maret University, Event, Competition, Festival",
   authors: [
@@ -15,7 +15,7 @@ export const metadata = {
     icon: "./logo.svg",
   },
   openGraph: {
-    title: "Contact | Prasasti 2026",
+    title: "Contact - PRASASTI 2026",
     description:
       "Prasasti 2026, KEMAS UNS Sukoharjo, Prepare with Sebelas Maret University, Event, Competition, Festival",
     images: [

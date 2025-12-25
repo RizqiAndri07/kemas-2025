@@ -6,9 +6,9 @@ import WhatsNew from "@/components/home/WhatsNew";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Home | Prasasti 2025",
+  title: "Home - PRASASTI 2026",
   description:
-    "Prasasti 2025, KEMAS UNS Sukoharjo, Prepare with Sebelas Maret University, Event, Competition, Festival",
+    "Prasasti 2026, KEMAS UNS Sukoharjo, Prepare with Sebelas Maret University, Event, Competition, Festival",
   authors: [
     { name: "KEMAS UNS Sukoharjo", url: "https://www.kemasprasasti.com" },
   ],
@@ -16,15 +16,15 @@ export const metadata: Metadata = {
     icon: "./logo.svg",
   },
   openGraph: {
-    title: "Home | Prasasti 2025",
+    title: "Home - PRASASTI 2026",
     description:
-      "Prasasti 2025, KEMAS UNS Sukoharjo, Prepare with Sebelas Maret University, Event, Competition, Festival",
+      "Prasasti 2026, KEMAS UNS Sukoharjo, Prepare with Sebelas Maret University, Event, Competition, Festival",
     images: [
       {
         url: "./logo.svg",
         width: 800,
         height: 600,
-        alt: "Prasasti 2025",
+        alt: "Prasasti 2026",
       },
     ],
   },

@@ -8,7 +8,7 @@ const getCompetition = () => {
   return competitionData;
 };
 export const metadata = {
-  title: "Competition | Prasasti 2026",
+  title: "Competition - PRASASTI 2026",
   description:
     "Prasasti 2026, KEMAS UNS Sukoharjo, Prepare with Sebelas Maret University, Event, Competition, Festival",
   authors: [
@@ -30,10 +30,10 @@ export const metadata = {
     "accoustic prasasti",
     "dance prasasti",
     "prasasti festival",
-    "prasasti 2026"
+    "prasasti 2026",
   ],
   openGraph: {
-    title: "Competition | Prasasti 2026",
+    title: "Competition - PRASASTI 2026",
     description:
       "Prasasti 2026, KEMAS UNS Sukoharjo, Prepare with Sebelas Maret University, Event, Competition, Festival",
     images: [

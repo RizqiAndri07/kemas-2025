@@ -68,6 +68,9 @@ export const competitionData: IDataEvent[] = [
       "Mobile Legends Competition PRASASTI#10 2026 KEMAS UNS merupakan sebuah tournament games yang akan dilaksanakan secara online dan offline, yang bertujuan sebagai ajang pembuktian kemampuan tim-tim lokal di tingkat regional, sekaligus membuka peluang menuju kompetisi yang lebih besar. Tournament ini akan memperebutkan juara 1, 2, dan 3 serta penghargaan Most Valuable Player (MVP)",
     open_registration: "25 Desember 2025 - 20 Januari 2026",
     link_registration: "https://forms.gle/9Tk9RhSy4AgrU7k69",
+    prize: {
+      "Presale 1": 60000
+    },
     pamflet: "/pamflet/mlbb_competition.png",
     contact: {
       Saskia: "+62895363433664",

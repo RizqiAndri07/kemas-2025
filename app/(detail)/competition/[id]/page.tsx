@@ -41,19 +41,19 @@ export async function generateMetadata({ params }: Props) {
 
   if (!data) {
     return {
-      title: "Competition | Prasasti 2026",
+      title: "Competition - PRASASTI 2026",
       robots: { index: false },
     };
   }
 
   return {
-    title: `${data.name} | Prasasti 2026`,
+    title: `${data.name} - PRASASTI 2026`,
     description: data.description,
     icons: {
       icon: data.typography || "./logo.svg",
     },
     openGraph: {
-      title: `${data.name} | Prasasti 2026`,
+      title: `${data.name} - PRASASTI 2026`,
       description: data.description,
       images: [
         {

@@ -6,7 +6,7 @@ import React from "react";
 import { CarouselComponents } from "./CarouselComponents";
 // import { CarouselComponents } from "./CarouselComponents";
 export const metadata = {
-  title: "About | Prasasti 2026",
+  title: "About - PRASASTI 2026",
   description:
     "Prasasti 2026, KEMAS UNS Sukoharjo, Prepare with Sebelas Maret University, Event, Competition, Festival",
   authors: [
@@ -16,7 +16,7 @@ export const metadata = {
     icon: "./logo.svg",
   },
   openGraph: {
-    title: "About | Prasasti 2026",
+    title: "About - PRASASTI 2026",
     description:
       "Prasasti 2026, KEMAS UNS Sukoharjo, Prepare with Sebelas Maret University, Event, Competition, Festival",
     images: [
