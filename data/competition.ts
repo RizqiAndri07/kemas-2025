@@ -2,7 +2,7 @@ import { IDataEvent } from "@/types/event.interface";
 
 export const competitionData: IDataEvent[] = [
   {
-    id: 1,
+    id: "tryout",
     name: "Try Out",
     logo: "📖",
     typography: "/assets/Typography/TO.png",
@@ -27,7 +27,7 @@ export const competitionData: IDataEvent[] = [
     },
   },
   {
-    id: 2,
+    id: "futsal",
     name: "Futsal Competition",
     logo: "⚽",
     typography: "/assets/Typography/Futsal.png",
@@ -55,7 +55,7 @@ export const competitionData: IDataEvent[] = [
     },
   },
   {
-    id: 3,
+    id: "mlbb",
     name: "MLBB Competition",
     logo: "🎮",
     typography: "/assets/Typography/MLBB.png",
@@ -82,7 +82,7 @@ export const competitionData: IDataEvent[] = [
     },
   },
   {
-    id: 4,
+    id: "adc",
     name: "Accoustic And Dance Competition",
     logo: "🎸💃",
     typography: "/assets/Typography/ADC.png",
@@ -114,7 +114,7 @@ export const competitionData: IDataEvent[] = [
     note: "Apabila jumlah personil melebihi ketentuan, maka dikenakan registrasi tambahan sebesar Rp15.000,00 / personil.",
   },
   {
-    id: 5,
+    id: "prasasti_festival",
     name: "Prasasti Festival",
     logo: "🎭",
     // typography: "",

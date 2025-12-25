@@ -1,5 +1,5 @@
 export interface IDataEvent {
-  id: number;
+  id: string;
   name: string;
   logo: string;
   typography?: string;
