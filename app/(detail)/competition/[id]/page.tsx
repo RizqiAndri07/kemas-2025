@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 // import { image } from "motion/react-client";
 import Link from "next/link";
+import { url } from "inspector";
 
 // import Register from "./Register";
 type Props = {
@@ -50,14 +51,15 @@ export async function generateMetadata({ params }: Props) {
     title: `${data.name} - PRASASTI 2026`,
     description: data.description,
     icons: {
-      icon: data.typography || "./logo.svg",
+      icon: "https://www.kemasprasasti.com/logo.svg",
     },
     openGraph: {
       title: `${data.name} - PRASASTI 2026`,
       description: data.description,
+      url: `https://kemasprasasti.com/competition/${data.id}`,
       images: [
         {
-          url: "./logo.svg",
+          url: data.OG || "https://www.kemasprasasti.com/logo.svg",
           width: 800,
           height: 600,
           alt: "Prasasti 2026",

@@ -2,6 +2,7 @@ export interface IDataEvent {
   id: string;
   name: string;
   logo: string;
+  OG?: string;
   typography?: string;
   maskot?: Record<string, string>;
   date?: string[];

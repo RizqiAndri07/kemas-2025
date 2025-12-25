@@ -6,6 +6,7 @@ export const competitionData: IDataEvent[] = [
     name: "Try Out",
     logo: "📖",
     typography: "/assets/Typography/TO.png",
+    OG: "https://kemasprasasti.com/assets/Typography/TO.png",
     maskot: {
       mas: "/assets/Maskot/Mas-TO.png",
       mbak: "/assets/Maskot/Mbak-TO.png",
@@ -31,6 +32,7 @@ export const competitionData: IDataEvent[] = [
     name: "Futsal Competition",
     logo: "⚽",
     typography: "/assets/Typography/Futsal.png",
+    OG: "https://kemasprasasti.com/assets/Typography/Futsal.png",
     maskot: {
       mas: "/assets/Maskot/Mas-Futsal.png",
       mbak: "/assets/Maskot/Mbak-Futsal.png",
@@ -59,6 +61,7 @@ export const competitionData: IDataEvent[] = [
     name: "MLBB Competition",
     logo: "🎮",
     typography: "/assets/Typography/MLBB.png",
+    OG: "https://kemasprasasti.com/assets/Typography/MLBB.png",
     date: [
       "Sabtu, 27 Januari 2026 (Online)",
       "Sabtu, 31 Januari 2026 (Offline)",
@@ -86,6 +89,7 @@ export const competitionData: IDataEvent[] = [
     name: "Accoustic And Dance Competition",
     logo: "🎸💃",
     typography: "/assets/Typography/ADC.png",
+    OG: "https://kemasprasasti.com/assets/Typography/ADC.png",
     maskot: {
       mas: "/assets/Maskot/Mas-ADC.png",
       mbak: "/assets/Maskot/Mbak-ADC.png",
