@@ -8,14 +8,14 @@ import {
   CircleUserRound,
   Coins,
   Download,
-  icons,
+  // icons,
   // icons,
   Landmark,
   LocateFixedIcon,
 } from "lucide-react";
 // import { image } from "motion/react-client";
 import Link from "next/link";
-import { url } from "inspector";
+// import { url } from "inspector";
 
 // import Register from "./Register";
 type Props = {
