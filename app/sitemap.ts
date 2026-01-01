@@ -5,26 +5,38 @@ export default function sitemap(): MetadataRoute.Sitemap {
     {
       url: "https://www.kemasprasasti.com",
       lastModified: new Date(),
-      changeFrequency: "monthly",
-      priority: 1,
     },
     {
       url: "https://www.kemasprasasti.com/about",
       lastModified: new Date(),
-      changeFrequency: "monthly",
-      priority: 0.5,
+    },
+    {
+      url: "https://www.kemasprasasti.com/competition/tryout",
+      lastModified: new Date(),
+    },
+    {
+      url: "https://www.kemasprasasti.com/competition/futsal",
+      lastModified: new Date(),
+    },
+    {
+      url: "https://www.kemasprasasti.com/competition/prasasti_festival",
+      lastModified: new Date(),
+    },
+    {
+      url: "https://www.kemasprasasti.com/competition/adc",
+      lastModified: new Date(),
+    },
+    {
+      url: "https://www.kemasprasasti.com/competition/mlbb",
+      lastModified: new Date(),
     },
     {
       url: "https://www.kemasprasasti.com/competition",
       lastModified: new Date(),
-      changeFrequency: "weekly",
-      priority: 1,
     },
     {
       url: "https://www.kemasprasasti.com/contact",
       lastModified: new Date(),
-      changeFrequency: "weekly",
-      priority: 1,
     },
   ];
 }

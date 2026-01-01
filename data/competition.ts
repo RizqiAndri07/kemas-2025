@@ -17,7 +17,9 @@ export const competitionData: IDataEvent[] = [
       "Kegiatan Try Out Event PRASASTI#10 2026 KEMAS UNS merupakan rangkaian acara PRASASTI#10 2026 yang bertujuan untuk membantu siswa SMA/MK/MA dan siswa Gap Year yang akan masuk Perguruan Tinggi Negeri. Try Out Event PRASASTI#10 2026 diselenggarakan pada hari Minggu, 18 Januari 2026 di SMA Negeri 1 Sukoharjo secara offline dengan pengerjaan online berbasis SIP NF. Memiliki beberapa rangkaian acara seperti Pengerjaan Soal, Expo Kampus, Food Bazaar, Parade Universitas, Parade Fakultas, Pembahasan Soal, Games, Awarding dan Penampilan Guest Star.",
     open_registration: "14 Desember 2025 - 13 Januari 2026",
     link_registration: "https://uns.id/TRYOUTSNBTPRASASTI10",
-    prize: 30000,
+    prize: {
+      "Presale 2": 35000,
+    },
     pamflet: "/pamflet/tryout.png",
     contact: {
       Amifa: "+62882003533360",
@@ -72,7 +74,7 @@ export const competitionData: IDataEvent[] = [
     open_registration: "25 Desember 2025 - 20 Januari 2026",
     link_registration: "https://forms.gle/9Tk9RhSy4AgrU7k69",
     prize: {
-      "Presale 1": 60000
+      "Presale 1": 60000,
     },
     pamflet: "/pamflet/mlbb_competition.png",
     contact: {
