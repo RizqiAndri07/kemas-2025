@@ -5,6 +5,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import Image from "next/image";
 import localfont from "next/font/local";
+import OrganizationSchema from "../schema";
 
 const poppins = Poppins({
   variable: "--font-poppins",
@@ -58,6 +59,7 @@ export default function RootLayout({
           {children}
         </main>
         <div className="relative">
+          <OrganizationSchema />
           <div className="absolute h-screen bg-linear-to-t from-primary/20 to-primary/10 w-full blur-2xl -top-[500px] -z-40"></div>
           <Image
             src={"/Vector.svg"}

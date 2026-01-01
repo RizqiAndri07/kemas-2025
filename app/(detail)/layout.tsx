@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Plus_Jakarta_Sans, Poppins } from "next/font/google";
 import "@/app/globals.css";
 import localFont from "next/font/local";
+import OrganizationSchema from "../schema";
 const jakartaSans = Plus_Jakarta_Sans({
   variable: "--font-plus-jakarta-sans",
   subsets: ["latin"],
@@ -53,6 +54,7 @@ export default function RootLayout({
       <body
         className={`${poppins.variable} ${BiscuitGlitch.variable} antialiased bg-linear-to-b from-accent/40 to-secondary/20 font-poppins`}
       >
+        <OrganizationSchema />
         <main className="min-h-screen scroll-smooth">{children}</main>
       </body>
     </html>
