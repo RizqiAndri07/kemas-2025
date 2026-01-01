@@ -7,7 +7,7 @@ export default function OrganizationSchema() {
         __html: JSON.stringify({
           "@context": "https://schema.org",
           "@type": "Organization",
-          name: "Kemas Prasasati",
+          name: "Kemas Prasasati 2026",
           url: "https://kemasprasasti.com",
           logo: "https://kemasprasasti.com/logo.svg",
         }),

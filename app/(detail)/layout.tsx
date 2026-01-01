@@ -37,7 +37,6 @@ export const metadata: Metadata = {
     "Acoustics",
     "Dance",
     "Try Out",
-    
   ],
   verification: {
     google: "i9HroOm7gYxL3RyPQNfAWMGMFzjh7d2Gjt_-MXAECyU",
@@ -51,10 +50,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <head>
+        <OrganizationSchema />
+      </head>
       <body
         className={`${poppins.variable} ${BiscuitGlitch.variable} antialiased bg-linear-to-b from-accent/40 to-secondary/20 font-poppins`}
       >
-        <OrganizationSchema />
         <main className="min-h-screen scroll-smooth">{children}</main>
       </body>
     </html>

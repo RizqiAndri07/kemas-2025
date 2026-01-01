@@ -38,7 +38,6 @@ export const metadata: Metadata = {
     "Accoustics",
     "Dance",
     "Try Out",
-    
   ],
   verification: {
     google: "i9HroOm7gYxL3RyPQNfAWMGMFzjh7d2Gjt_-MXAECyU",
@@ -51,6 +50,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <head>
+        <OrganizationSchema />
+      </head>
       <body
         className={` ${BiscuitGlitch.variable} ${poppins.variable} antialiased bg-linear-to-b from-accent/40 to-secondary/20`}
       >
@@ -59,7 +61,6 @@ export default function RootLayout({
           {children}
         </main>
         <div className="relative">
-          <OrganizationSchema />
           <div className="absolute h-screen bg-linear-to-t from-primary/20 to-primary/10 w-full blur-2xl -top-[500px] -z-40"></div>
           <Image
             src={"/Vector.svg"}
