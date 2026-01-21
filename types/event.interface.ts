@@ -18,4 +18,5 @@ export interface IDataEvent {
   contact?: Record<string, string>;
   note?: string;
   berkas?: Record<string, string>;
+  status: "ongoing" | "closed";
 }

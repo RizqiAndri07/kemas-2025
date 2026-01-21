@@ -12,6 +12,7 @@ import {
   // icons,
   Landmark,
   LocateFixedIcon,
+  Users,
 } from "lucide-react";
 // import { image } from "motion/react-client";
 import Link from "next/link";
@@ -174,14 +175,14 @@ const Page = async ({ params }: Props) => {
                           Rp {value.toLocaleString("id-ID")}
                         </p>
                       </div>
-                    )
+                    ),
                   )
                 ) : (
                   <p className="body-xs text-foreground/70">
                     {detailCompetition.prize === "Free Entry"
                       ? "Free Entry"
                       : `Rp ${Number(detailCompetition.prize).toLocaleString(
-                          "id-ID"
+                          "id-ID",
                         )}`}
                   </p>
                 )}
@@ -212,7 +213,7 @@ const Page = async ({ params }: Props) => {
                           <Download />
                         </Button>
                       </a>
-                    )
+                    ),
                   )}
               </div>
             </div>
@@ -255,7 +256,7 @@ const Page = async ({ params }: Props) => {
                           </Button>
                         </a>
                       </div>
-                    )
+                    ),
                   )}
               </div>
             </div>
@@ -264,10 +265,22 @@ const Page = async ({ params }: Props) => {
       </div>
       <div className="w-full bg-background p-4 rounded-2xl shadow border border-foreground/10 sticky bottom-0">
         {detailCompetition?.link_registration ? (
-          <Link href={detailCompetition?.link_registration}>
-            <Button className="w-full" size="lg" variant={"gradient"}>
-              Daftar Sekarang
-              <ArrowRightCircle />
+          <Link
+            className=" "
+            href={`/competition/${detailCompetition?.status === "ongoing" ? detailCompetition.id : "#"}`}
+          >
+            <Button
+              variant={
+                detailCompetition?.status === "ongoing"
+                  ? "gradient"
+                  : "disabled"
+              }
+              className="w-full"
+            >
+              <Users size={20} visibility={detailCompetition?.status === "ongoing" ? "visible" : "hidden"} />
+              {detailCompetition?.status === "ongoing"
+                ? "Daftar Sekarang"
+                : "Closed"}
             </Button>
           </Link>
         ) : (

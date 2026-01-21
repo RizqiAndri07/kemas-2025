@@ -28,6 +28,7 @@ export const competitionData: IDataEvent[] = [
     berkas: {
       "Tata Cara": "/TryOut/Tata-Cara-TO.png",
     },
+    status: "closed",
   },
   {
     id: "futsal",
@@ -57,6 +58,7 @@ export const competitionData: IDataEvent[] = [
       "MOU Supporter": "/Futsal/MOU-Supporter.pdf",
       "Formulir Pendaftaran": "/Futsal/Formulir-Pendaftaran.pdf",
     },
+    status: "closed",
   },
   {
     id: "mlbb",
@@ -85,6 +87,7 @@ export const competitionData: IDataEvent[] = [
       "Surat Pernyataan": "/MLBB/Surat-Pernyataan.pdf",
       "Guide Book": "/MLBB/Guide-Book.pdf",
     },
+    status: "ongoing",
   },
   {
     id: "adc",
@@ -118,6 +121,7 @@ export const competitionData: IDataEvent[] = [
       "Surat Pernyataan": "/ADC/Surat-Pernyataan-ADC.doc",
     },
     note: "Apabila jumlah personil melebihi ketentuan, maka dikenakan registrasi tambahan sebesar Rp15.000,00 / personil.",
+    status: "ongoing",
   },
   {
     id: "prasasti_festival",
@@ -132,5 +136,6 @@ export const competitionData: IDataEvent[] = [
     venue: "https://maps.app.goo.gl/MmzQPpnCnSVhSLks7",
     prize: "Free Entry",
     pamflet: "/pamflet/prasasti_festival.png",
+    status: "ongoing",
   },
 ];

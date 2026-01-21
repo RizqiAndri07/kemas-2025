@@ -1,8 +1,9 @@
 import { IDataEvent } from "@/types/event.interface";
-import { Calendar, Sparkles, Users } from "lucide-react";
+import { Calendar, Sparkles, SquareArrowOutUpRight, Users } from "lucide-react";
 // import Image from "next/image";
 import Link from "next/link";
 import Image from "next/image";
+import { Button } from "@/components/ui/button";
 interface EventCardProps {
   event: IDataEvent;
 }
@@ -85,12 +86,25 @@ const EventCard = ({ event }: EventCardProps) => {
       </div>
       {/* button */}
       <div className="grid px-6 gap-2 py-3">
-        <Link
-          className="bg-linear-to-br from-primary to-secondary text-primary-foreground p-3 rounded-2xl flex items-center justify-center gap-2  shadow-md "
-          href={`/competition/${event.id}`}
-        >
-          <Users size={20} />
-          Daftar Sekarang
+        <Link className=" " href={`/competition/${event.id}`}>
+          <Button
+            variant={
+              event.status === "ongoing" ? "gradient" : "outlinesecondary"
+            }
+            className="w-full"
+          >
+            {event.status === "ongoing" ? (
+              <>
+                <Users size={20} />
+                Daftar Sekarang
+              </>
+            ) : (
+              <>
+                Lihat Detail
+                <SquareArrowOutUpRight size={20} />
+              </>
+            )}
+          </Button>
         </Link>
       </div>
     </div>
