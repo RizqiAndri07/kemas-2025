@@ -111,7 +111,7 @@ export const competitionData: IDataEvent[] = [
     },
     pamflet: "/pamflet/accoustic_dance.png",
     contact: {
-      Yunib: "+6285747264162",
+      Yunib: "+6285747264162",  
       Aurel: "+6285740693174",
     },
     berkas: {

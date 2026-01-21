@@ -267,7 +267,7 @@ const Page = async ({ params }: Props) => {
         {detailCompetition?.link_registration ? (
           <Link
             className=" "
-            href={`/competition/${detailCompetition?.status === "ongoing" ? detailCompetition.id : "#"}`}
+            href={`${detailCompetition?.status === "ongoing" ? detailCompetition.link_registration : "#"}`}
           >
             <Button
               variant={
@@ -277,7 +277,12 @@ const Page = async ({ params }: Props) => {
               }
               className="w-full"
             >
-              <Users size={20} visibility={detailCompetition?.status === "ongoing" ? "visible" : "hidden"} />
+              <Users
+                size={20}
+                visibility={
+                  detailCompetition?.status === "ongoing" ? "visible" : "hidden"
+                }
+              />
               {detailCompetition?.status === "ongoing"
                 ? "Daftar Sekarang"
                 : "Closed"}
