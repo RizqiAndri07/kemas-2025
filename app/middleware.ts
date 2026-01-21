@@ -1,7 +1,15 @@
 // middleware.ts
 import { NextResponse } from "next/server";
 
-export function middleware(req) {
+interface NextUrl {
+  pathname: string;
+}
+
+interface MiddlewareRequest {
+  nextUrl: NextUrl;
+}
+
+export function middleware(req: MiddlewareRequest): NextResponse | void {
   if (
     req.nextUrl.pathname === "/registrasi/" ||
     req.nextUrl.pathname === "/acoustic-dance-competition/" ||
