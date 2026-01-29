@@ -40,8 +40,14 @@ const EventCard = ({ event }: EventCardProps) => {
           {event.open_registration && (
             <div className="flex items-start gap-2 ">
               <Calendar className="text-secondary" />
-              <div className="body-xs  w-full text-left">
-                <p className="text-foreground/60">Pendaftaran</p>
+              <div className="body-xs space-y-2 w-full text-left">
+                <div className="gap-x-3 flex">
+                  <p className="text-foreground/60">Pendaftaran</p>
+                  {event.extend && (
+                    <span className="bg-secondary italic text-xs rounded text-white px-3">{event.extend}</span>
+
+                  )}
+                </div>
                 <p className="">{event.open_registration}</p>
               </div>
             </div>

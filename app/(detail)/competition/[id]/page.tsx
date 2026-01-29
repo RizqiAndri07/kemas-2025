@@ -3,7 +3,7 @@ import { competitionData } from "@/data/competition";
 import Image from "next/image";
 import {
   ArrowLeft,
-  ArrowRightCircle,
+  // ArrowRightCircle,
   Calendar,
   CircleUserRound,
   Coins,
@@ -123,7 +123,12 @@ const Page = async ({ params }: Props) => {
               className="bg-primary/20 border-primary/40 border text-primary rounded-md p-2  size-10 md:size-14 "
             />
             <div className="w-full">
-              <h5 className="text-primary">Pendaftaran</h5>
+              <div className="flex gap-x-3 items-center">
+                <h5 className="text-primary ">Pendaftaran</h5>
+                <span className="text-[9px] md:text-sm rounded bg-secondary italic text-white px-2">
+                  {detailCompetition?.extend}
+                </span>
+              </div>
               <p className=" body-xs text-foreground/70">
                 {detailCompetition?.open_registration}
               </p>
@@ -136,6 +141,7 @@ const Page = async ({ params }: Props) => {
             />
             <div className="w-full">
               <h5 className="text-secondary">Pelaksanaan</h5>
+
               {detailCompetition?.date?.map((date, index) => (
                 <p key={index} className="body-xs text-foreground/70">
                   {date}

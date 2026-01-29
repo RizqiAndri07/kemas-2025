@@ -11,7 +11,7 @@ export interface IDataEvent {
   description: string;
   open_registration?: string;
   link_registration?: string;
-
+  extend?: string;
   prize?: number | Record<string, number> | "Free Entry";
   pamflet?: string;
 

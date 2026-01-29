@@ -67,13 +67,14 @@ export const competitionData: IDataEvent[] = [
     typography: "/assets/Typography/MLBB.png",
     OG: "https://kemasprasasti.com/assets/Typography/MLBB.png",
     date: [
-      "Sabtu, 27 Januari 2026 (Online)",
-      "Sabtu, 31 Januari 2026 (Offline)",
+      "Minggu, 1 Februari 2026 (Online)",
+      "Jumat, 6 Februari 2026 (Offline)",
     ],
-    location: "Lokananta",
+    location: "Neo Solo Grand Mall",
     description:
       "Mobile Legends Competition PRASASTI#10 2026 KEMAS UNS merupakan sebuah tournament games yang akan dilaksanakan secara online dan offline, yang bertujuan sebagai ajang pembuktian kemampuan tim-tim lokal di tingkat regional, sekaligus membuka peluang menuju kompetisi yang lebih besar. Tournament ini akan memperebutkan juara 1, 2, dan 3 serta penghargaan Most Valuable Player (MVP)",
-    open_registration: "25 Desember 2025 - 20 Januari 2026",
+    open_registration: "29 Januari 2025 - 30 Januari 2026",
+    extend: "Extra Extend",
     link_registration: "https://forms.gle/9Tk9RhSy4AgrU7k69",
     prize: {
       "Presale 1": 60000,
@@ -121,7 +122,7 @@ export const competitionData: IDataEvent[] = [
       "Surat Pernyataan": "/ADC/Surat-Pernyataan-ADC.doc",
     },
     note: "Apabila jumlah personil melebihi ketentuan, maka dikenakan registrasi tambahan sebesar Rp15.000,00 / personil.",
-    status: "ongoing",
+    status: "closed",
   },
   {
     id: "prasasti_festival",
