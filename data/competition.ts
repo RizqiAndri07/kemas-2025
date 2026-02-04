@@ -88,7 +88,7 @@ export const competitionData: IDataEvent[] = [
       "Surat Pernyataan": "/MLBB/Surat-Pernyataan.pdf",
       "Guide Book": "/MLBB/Guide-Book.pdf",
     },
-    status: "ongoing",
+    status: "closed",
   },
   {
     id: "adc",

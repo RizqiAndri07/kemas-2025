@@ -43,9 +43,15 @@ const EventCard = ({ event }: EventCardProps) => {
               <div className="body-xs space-y-2 w-full text-left">
                 <div className="gap-x-3 flex">
                   <p className="text-foreground/60">Pendaftaran</p>
-                  {event.extend && (
-                    <span className="bg-secondary italic text-xs rounded text-white px-3">{event.extend}</span>
 
+                  {event.status === "closed" ? (
+                    <span className="bg-red-400 italic text-xs rounded text-white px-3">
+                      Closed
+                    </span>
+                  ) : (
+                    <span className="bg-secondary italic text-xs rounded text-white px-3">
+                      {event.extend}
+                    </span>
                   )}
                 </div>
                 <p className="">{event.open_registration}</p>
