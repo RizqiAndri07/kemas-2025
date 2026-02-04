@@ -125,9 +125,15 @@ const Page = async ({ params }: Props) => {
             <div className="w-full">
               <div className="flex gap-x-3 items-center">
                 <h5 className="text-primary ">Pendaftaran</h5>
-                <span className="text-[9px] md:text-sm rounded bg-secondary italic text-white px-2">
-                  {detailCompetition?.extend}
-                </span>
+                {detailCompetition?.status === "closed" ? (
+                  <span className="bg-red-400 italic text-sm rounded text-white  px-3">
+                    Closed
+                  </span>
+                ) : (
+                  <span className="bg-secondary italic text-xs rounded text-white px-3">
+                    {detailCompetition?.extend}
+                  </span>
+                )}
               </div>
               <p className=" body-xs text-foreground/70">
                 {detailCompetition?.open_registration}
