@@ -23,7 +23,7 @@
    - Menerima konfirmasi pendaftaran.
 
 3. **Panitia / Administrator (Admin):**
-   - Login ke dashboard terproteksi via Firebase Authentication.
+   - Login ke dashboard terproteksi via Supabase Auth.
    - Mengelola status pendaftaran (meninjau berkas, memvalidasi pembayaran, menyetujui/menolak).
    - Mengelola konten blog (menulis artikel baru, mengedit, menghapus, mengelola tag/kategori).
    - Mengelola informasi lomba (jadwal, status buka/tutup pendaftaran, update contact person).
@@ -40,7 +40,7 @@ graph TD
     User -->|Mendaftar Lomba| RegForm[Formulir Pendaftaran & Upload Berkas]
     User -->|Membaca| BlogPublic[Blog & Artikel Publik]
 
-    Admin([Panitia Admin]) -->|Login Firebase Auth| Dashboard[Admin Dashboard]
+    Admin([Panitia Admin]) -->|Login Supabase Auth| Dashboard[Admin Dashboard]
     Dashboard --> CMSBlog[Kelola Artikel Blog]
     Dashboard --> ManageReg[Verifikasi & Ekspor Data Peserta]
     Dashboard --> ManageComp[Atur Status & Data Kompetisi]
@@ -52,18 +52,18 @@ graph TD
 
 1. **Fase Fondasi:**
    - Standarisasi aturan kerja agen (`AGENTS.md`, `.agents/rules/`).
-   - Penyelarasan arsitektur database (integrasi Prisma ORM dan Firebase).
+   - Setup arsitektur database (PostgreSQL via Supabase & Drizzle ORM).
    - Dokumentasi lengkap spesifikasi dan skema data.
 2. **Fase Modul Publik & Pendaftaran:**
    - Penyempurnaan halaman landing dan detail kompetisi.
    - Pembangunan formulir pendaftaran dinamis dengan validasi Zod.
 3. **Fase Admin Dashboard & Autentikasi:**
-   - Setup Firebase Auth (Role-based access untuk Admin).
+   - Setup Supabase Auth (Role-based access untuk Admin).
    - Antarmuka dashboard manajemen pendaftar & verifikasi berkas.
 4. **Fase Web CMS Blog:**
    - Rich-text editor atau markdown editor untuk penulisan artikel.
    - Publikasi dan rendering halaman detail artikel yang SEO-friendly.
 5. **Fase Realtime & Finishing:**
-   - Notifikasi / pembaruan status realtime menggunakan Firebase Realtime Database / Firestore.
+   - Notifikasi / pembaruan status realtime menggunakan Supabase Realtime.
    - Pengujian end-to-end dan optimasi performa.
 

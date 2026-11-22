@@ -246,3 +246,175 @@
     @apply font-sans;
   }
 }
+
+/* ==========================================================================
+   BlockNote Notion Canvas Theme Adaptation (CSS Variables & Dynamic Mode)
+   ========================================================================== */
+.bn-container,
+.bn-root,
+.bn-editor {
+  background-color: transparent !important;
+  color: var(--foreground) !important;
+  --bn-colors-editor-background: transparent !important;
+  --bn-colors-editor-text: var(--foreground) !important;
+  --bn-colors-menu-background: var(--card) !important;
+  --bn-colors-menu-text: var(--card-foreground) !important;
+  --bn-colors-tooltip-background: var(--popover) !important;
+  --bn-colors-tooltip-text: var(--popover-foreground) !important;
+  --bn-colors-hovered-background: var(--muted) !important;
+  --bn-colors-hovered-text: var(--foreground) !important;
+  --bn-colors-selected-background: var(--primary) !important;
+  --bn-colors-selected-text: var(--primary-foreground) !important;
+  --bn-colors-disabled-background: var(--muted) !important;
+  --bn-colors-disabled-text: var(--muted-foreground) !important;
+  --bn-colors-border: var(--border) !important;
+  --bn-colors-side-menu: var(--muted-foreground) !important;
+}
+
+.bn-shadcn,
+.bn-shadcn .bn-editor {
+  background-color: transparent !important;
+  color: var(--foreground) !important;
+}
+
+.bn-shadcn .bn-editor:focus-visible {
+  outline: none !important;
+}
+
+.bn-shadcn .bn-toolbar,
+.bn-shadcn .bn-select,
+.bn-shadcn .bn-menu-dropdown {
+  background-color: var(--popover) !important;
+  color: var(--popover-foreground) !important;
+  border: 1px solid var(--border) !important;
+}
+
+.bn-shadcn .bn-side-menu .bn-button {
+  color: var(--muted-foreground) !important;
+}
+
+.bn-shadcn .bn-side-menu .bn-button:hover {
+  color: var(--foreground) !important;
+  background-color: var(--muted) !important;
+}
+
+/* ==========================================================================
+   Blog Reader & Preview Content Typography (Universal Reader Mode)
+   ========================================================================== */
+.blog-reader-content {
+  line-height: 1.8;
+  color: var(--foreground);
+}
+
+.blog-reader-content h1 {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-top: 1.75rem;
+  margin-bottom: 0.75rem;
+  line-height: 1.25;
+}
+
+.blog-reader-content h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-top: 1.5rem;
+  margin-bottom: 0.5rem;
+  line-height: 1.35;
+}
+
+.blog-reader-content h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-top: 1.25rem;
+  margin-bottom: 0.5rem;
+  line-height: 1.4;
+}
+
+.blog-reader-content p {
+  margin-top: 0.85rem;
+  margin-bottom: 0.85rem;
+}
+
+.blog-reader-content ul {
+  list-style-type: disc;
+  padding-left: 1.5rem;
+  margin: 0.75rem 0;
+}
+
+.blog-reader-content ol {
+  list-style-type: decimal;
+  padding-left: 1.5rem;
+  margin: 0.75rem 0;
+}
+
+.blog-reader-content li {
+  margin-bottom: 0.35rem;
+}
+
+.blog-reader-content blockquote {
+  border-left: 4px solid var(--primary);
+  padding: 0.75rem 1.25rem;
+  margin: 1.25rem 0;
+  background-color: var(--muted);
+  border-radius: 0 0.5rem 0.5rem 0;
+  font-style: italic;
+}
+
+.blog-reader-content pre {
+  background-color: var(--muted);
+  border: 1px solid var(--border);
+  padding: 1rem;
+  border-radius: 0.5rem;
+  overflow-x: auto;
+  margin: 1.25rem 0;
+  font-size: 0.875rem;
+}
+
+.blog-reader-content code {
+  font-family: var(--font-mono);
+  background-color: var(--muted);
+  padding: 0.15rem 0.4rem;
+  border-radius: 0.25rem;
+  font-size: 0.875em;
+}
+
+.blog-reader-content img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 0.625rem;
+  margin: 1.5rem auto;
+  display: block;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border);
+}
+
+.blog-reader-content hr {
+  margin: 2rem 0;
+  border: 0;
+  border-top: 1px solid var(--border);
+}
+
+.blog-reader-content table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1.25rem 0;
+}
+
+.blog-reader-content th,
+.blog-reader-content td {
+  border: 1px solid var(--border);
+  padding: 0.625rem 0.875rem;
+}
+
+.blog-reader-content th {
+  background-color: var(--muted);
+  font-weight: 600;
+}
+
+.blog-reader-content a {
+  color: var(--primary);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  font-weight: 500;
+}
+

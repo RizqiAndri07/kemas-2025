@@ -1,6 +1,6 @@
 # Environment Variables & Infrastructure
 
-Dokumen ini mendefinisikan variabel lingkungan (*environment variables*) yang diperlukan untuk menjalankan aplikasi **Kemas Prasasti 2025** dengan **Supabase** dan **PostgreSQL**.
+Dokumen ini mendefinisikan variabel lingkungan (*environment variables*) yang diperlukan untuk menjalankan aplikasi **Kemas Prasasti 2025** dengan **Supabase**, **PostgreSQL**, dan **Drizzle ORM**.
 
 ---
 
@@ -30,12 +30,12 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
 SUPABASE_SERVICE_ROLE_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
 
 # ==========================================
-# DATABASE & PRISMA ORM (PostgreSQL)
+# DATABASE & DRIZZLE ORM (PostgreSQL)
 # ==========================================
 # Connection URL ke PostgreSQL Supabase via connection pooler (Supavisor / PgBouncer, port 6543)
 DATABASE_URL="postgresql://postgres.[project-id]:[password]@aws-0-[region].pooler.supabase.com:6543/postgres?pgbouncer=true"
 
-# DIRECT_URL untuk koneksi langsung (port 5432) yang digunakan Prisma Migrate
+# DIRECT_URL untuk migrasi langsung (port 5432) yang digunakan Drizzle Kit
 DIRECT_URL="postgresql://postgres.[project-id]:[password]@aws-0-[region].pooler.supabase.com:5432/postgres"
 
 # ==========================================

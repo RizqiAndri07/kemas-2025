@@ -1,0 +1,30 @@
+export interface ContactPerson {
+  id: number;
+  event: string;
+  name: string;
+  phone: string;
+}
+
+export type CompetitionStatus = "ongoing" | "closed";
+
+export interface IDataEvent {
+  id: string;
+  name: string;
+  logo: string;
+  OG?: string;
+  typography?: string;
+  maskot?: Record<string, string>;
+  date?: string[];
+  location: string;
+  venue?: string;
+  description: string;
+  open_registration?: string;
+  link_registration?: string;
+  extend?: string;
+  prize?: number | Record<string, number> | "Free Entry";
+  pamflet?: string;
+  contact?: Record<string, string>;
+  note?: string;
+  berkas?: Record<string, string>;
+  status: CompetitionStatus;
+}

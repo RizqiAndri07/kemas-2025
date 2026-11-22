@@ -34,30 +34,20 @@ app/
 
 ---
 
-## 3. Spesifikasi Tiptap Rich Text Editor
+## 3. Spesifikasi BlockNote (Notion-Style Block Editor)
 
-### A. Dependensi yang Dibutuhkan (`pnpm`)
-- Core: `@tiptap/react`, `@tiptap/pm`
-- Extensions:
-  - `@tiptap/starter-kit` (Bold, Italic, Strike, Code, Heading 1-3, Paragraph, Bullet List, Ordered List, Blockquote, Horizontal Rule, History Undo/Redo)
-  - `@tiptap/extension-link` (Tautan hiperteks dengan protocol validation & target `_blank`)
-  - `@tiptap/extension-image` (Inline & centered images dengan atribut `alt` dan `title`)
-  - `@tiptap/extension-placeholder` (Tampilan placeholder teks: *"Mulai tulis cerita kegiatan di sini..."*)
+### A. Dependensi yang Digunakan (`pnpm`)
+- Core & React: `@blocknote/core`, `@blocknote/react`
+- UI Integration: `@blocknote/shadcn` (integrasi langsung dengan Shadcn design tokens & Tailwind CSS v4)
 
-### B. Komponen Toolbar Editor (`components/features/blog/editor-toolbar.tsx`)
-Toolbar ditempatkan di atas area penulisan dengan tombol-tombol interaktif:
-
-```text
-[ Undo | Redo ] | [ Bold | Italic | Strike | Code ] | [ H1 | H2 | H3 ] | [ Bullet List | Numbered List ] | [ Blockquote | Divider ] | [ 🔗 Link ] | [ 🖼️ Upload Gambar ]
-```
-
-1. **Format Teks Standar:**
-   - Bold (`Cmd+B` / `Ctrl+B`)
-   - Italic (`Cmd+I` / `Ctrl+I`)
-   - Strikethrough
-   - Heading dropdown: H1 (Judul Bagian), H2 (Sub-judul), H3 (Poin Penting).
-2. **List & Kutipan:**
-   - Bullet list & Numbered list dengan indentasi rapi.
+### B. Fitur & Pengalaman Menulis (Notion-Like Experience)
+1. **Full-page Notion Canvas:** Penulisan 1 halaman penuh tanpa batas kartu yang kaku, dilengkapi auto-expanding title dan panel properti halaman (Tag/Kategori, Status Komentar, Catatan Redaksi).
+2. **Slash Command (`/`):** Tekan `/` untuk memunculkan command menu kontekstual (Heading 1-3, Bullet List, Numbered List, Checklist, Quote, Code Block, Table, Divider, Gambar).
+3. **Per-Block Editing & Drag Handle:** Setiap paragraf atau blok dapat digeser/dipindahkan dengan drag handle (`::`) atau ditambah dengan tombol `+`.
+4. **Floating Format Toolbar:** Muncul otomatis saat teks diseleksi (Bold, Italic, Strikethrough, Underline, Code, Text Color, Background Color, Create Link).
+5. **Konversi Dua Arah Type-Safe:**
+   - Database HTML -> BlockNote Blocks (`editor.tryParseHTMLToBlocks(html)`)
+   - BlockNote Blocks -> Database Clean HTML (`editor.blocksToHTMLLossy(editor.document)`)
    - Blockquote untuk kutipan sambutan panitia / tokoh.
    - Horizontal rule (`---`) untuk pemisah bagian tulisan.
 3. **Penyisipan Tautan (Insert Link):**
@@ -65,10 +55,18 @@ Toolbar ditempatkan di atas area penulisan dengan tombol-tombol interaktif:
      - Field input URL (misal: `https://...`).
      - Checkbox: *Buka di tab baru (`target="_blank"`)*.
      - Tombol *Terapkan* dan *Hapus Tautan*.
-4. **Penyisipan Gambar (Insert Image):**
-   - **Mode 1 (Upload Berkas):** Pilih file gambar dari komputer &rarr; otomatis terunggah ke Firebase Storage folder `/blogs/content/` &rarr; URL gambar disisipkan ke posisi kursor editor.
-   - **Mode 2 (URL Eksternal):** Masukkan link gambar langsung.
-   - Dilengkapi atribut `alt` untuk aksesibilitas dan optimasi SEO gambar.
+4. **Penyisipan Gambar & Manajemen Berkas (Deferred Upload & Storage Diffing):**
+   - **Deferred Upload (Optimistic Preview):**
+     - Saat memilih gambar, browser membuat lokal `blob:` Object URL untuk preview instan tanpa latency jaringan.
+     - Berkas disimpan di memori sementara (`pendingImagesRef`).
+     - Jika gambar dihapus dari kanvas atau pembuatan artikel dibatalkan, **nol bytes masuk ke storage**, mencegah berkas sampah (*orphan files*).
+     - Saat tombol **"Publikasikan"** atau **"Simpan Perubahan"** ditekan, hanya gambar yang *aktif ada* di dokumen yang diunggah bersamaan ke Supabase Storage, lalu URL lokal `blob:` digantikan secara atomik dengan URL publik Supabase Storage.
+   - **Validasi Berkas:**
+     - **Batas Ukuran:** Maksimal **3 MB** (divalidasi di sisi klien dan Server Action).
+     - **Format yang Didukung:** PNG, JPG, JPEG, WebP, GIF, SVG.
+   - **Sinkronisasi Pembersihan Otomatis (Storage Diffing):**
+     - **Saat Edit Artikel:** Sistem membandingkan gambar lama vs baru. Gambar yang dihapus dari artikel lama otomatis dihapus dari bucket Supabase Storage.
+     - **Saat Hapus Artikel:** Seluruh berkas gambar yang terkait dengan artikel tersebut otomatis dibersihkan dari bucket Supabase Storage.
 
 ---
 
@@ -84,7 +82,7 @@ export interface IBlogPost {
   slug: string;
   excerpt: string;
   content: string; // HTML string hasil getHTML() dari Tiptap
-  coverImage?: string; // URL Firebase Storage
+  coverImage?: string; // URL Supabase Storage
   category: string;
   tags: string[];
   authorId: string;
@@ -97,41 +95,55 @@ export interface IBlogPost {
 }
 ```
 
-### B. Validasi Schema Zod (`schema/blog.schema.ts`)
-```typescript
-import { z } from 'zod';
+### B. Skema Database Drizzle (`modules/blog/infrastructure/blog.table.ts`)
 
-export const blogPostSchema = z.object({
+#### 1. Tabel `blogs`
+```typescript
+export const blogsTable = pgTable("blogs", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  title: varchar("title", { length: 255 }).notNull(),
+  description: text("description").notNull(),
+  tag: varchar("tag", { length: 255 }),
+  status: varchar("status", { length: 20 }).default("PUBLIC").notNull(), // 'PUBLIC' | 'PRIVATE'
+  commentStatus: boolean("comment_status").default(true).notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().$onUpdate(() => new Date()).notNull(),
+});
+```
+
+#### 2. Tabel `comments` (One-to-Many Relasi dengan `blogs`)
+```typescript
+export const commentsTable = pgTable("comments", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  blogId: uuid("blog_id")
+    .notNull()
+    .references(() => blogsTable.id, { onDelete: "cascade" }),
+  name: varchar("name", { length: 150 }).notNull(),
+  email: varchar("email", { length: 255 }),
+  content: text("content").notNull(),
+  isApproved: boolean("is_approved").default(true).notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().$onUpdate(() => new Date()).notNull(),
+});
+```
+
+### C. Validasi Schema Zod (`modules/blog/domain/blog.schema.ts`)
+```typescript
+import { z } from "zod";
+
+export const blogFormSchema = z.object({
   title: z
     .string()
-    .min(5, 'Judul artikel minimal 5 karakter')
-    .max(150, 'Judul artikel maksimal 150 karakter'),
-  slug: z
+    .min(5, "Judul artikel minimal 5 karakter")
+    .max(255, "Judul artikel maksimal 255 karakter"),
+  description: z
     .string()
-    .min(3, 'Slug minimal 3 karakter')
-    .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, 'Format slug tidak valid (gunakan huruf kecil dan tanda minus)'),
-  excerpt: z
-    .string()
-    .min(20, 'Ringkasan minimal 20 karakter')
-    .max(300, 'Ringkasan maksimal 300 karakter'),
-  content: z
-    .string()
-    .min(50, 'Konten artikel minimal 50 karakter'),
-  coverImage: z
-    .string()
-    .url('Format URL gambar sampul tidak valid')
-    .optional(),
-  category: z
-    .string()
-    .min(1, 'Pilih salah satu kategori'),
-  tags: z
-    .array(z.string())
-    .min(1, 'Minimal tambahkan 1 tag')
-    .max(5, 'Maksimal 5 tag'),
-  status: z.enum(['DRAFT', 'PUBLISHED', 'ARCHIVED']),
+    .min(10, "Konten/deskripsi artikel minimal 10 karakter"),
+  tag: z.string().max(255).optional().nullable(),
+  commentStatus: z.boolean().default(true),
 });
 
-export type BlogPostFormInput = z.infer<typeof blogPostSchema>;
+export type BlogFormInput = z.infer<typeof blogFormSchema>;
 ```
 
 ---
@@ -143,9 +155,9 @@ sequenceDiagram
     autonumber
     actor Admin as Panitia/Editor
     participant Editor as Tiptap Editor UI
-    participant Storage as Firebase Storage
+    participant Storage as Supabase Storage
     participant Action as Server Action
-    participant DB as Database (Prisma/Firestore)
+    participant DB as PostgreSQL (Drizzle ORM)
 
     Admin->>Editor: Mengetik Judul & Konten
     Admin->>Editor: Klik Tombol Upload Gambar
@@ -153,12 +165,25 @@ sequenceDiagram
     Storage-->>Editor: URL Publik Gambar
     Editor->>Editor: Sisipkan <img src="URL" alt="..." />
     Admin->>Editor: Masukkan Tautan & Format Teks
-    Admin->>Action: Klik "Simpan Draft" atau "Publikasikan"
+    Admin->>Editor: Klik Tombol "Preview / Tinjau"
+    Editor->>Admin: Muncul Modal Pratinjau Interaktif (Desktop / Tablet / Mobile Viewport)
+    Admin->>Action: Klik "Publikasikan Sekarang" (langsung dari Form atau Modal Preview)
     Action->>Action: Validasi dengan blogPostSchema.safeParse()
     Action->>DB: Simpan record artikel
     DB-->>Action: Berhasil tersimpan
     Action-->>Admin: Notifikasi sukses & redirect ke daftar blog
 ```
+
+### B. Fitur Review & Preview Sebelum Publish
+1. **Interactive Preview Modal (`BlogPreviewModal`):**
+   - Menggunakan komponen dialog Shadcn (`components/ui/dialog`).
+   - Dilengkapi **Device Viewport Switcher** (Desktop: 100%, Tablet: 768px, Mobile: 390px) untuk meninjau keterbacaan artikel di berbagai ukuran layar.
+   - Perhitungan estimasi waktu baca (*reading time*) otomatis secara dinamis berdasarkan total kata.
+   - Penampilan judul, tanggal penerbitan, daftar hashtag, status komentar, dan styling konten HTML.
+   - Tombol aksi terintegrasi di dalam modal: "Kembali Edit" dan "Publikasikan Sekarang".
+2. **Ketersediaan Tombol Preview:**
+   - Di `blog-form.tsx`: Tersedia di sebelah tombol Simpan/Publikasikan.
+   - Di `blog-table.tsx`: Tersedia pada dropdown aksi per baris artikel untuk meninjau artikel yang telah tersimpan tanpa perlu masuk mode edit.
 
 ---
 
@@ -177,11 +202,12 @@ sequenceDiagram
 
 ---
 
-## 7. Rencana Tahapan Implementasi (Setelah Persetujuan)
+## 7. Rencana & Status Tahapan Implementasi
 
-- [ ] **Langkah 1:** Instalasi dependensi Tiptap via `pnpm` (`@tiptap/react`, `@tiptap/pm`, `@tiptap/starter-kit`, `@tiptap/extension-link`, `@tiptap/extension-image`, `@tiptap/extension-placeholder`).
-- [ ] **Langkah 2:** Pembuatan tipe data di `types/blog.interface.ts` dan skema Zod di `schema/blog.schema.ts`.
-- [ ] **Langkah 3:** Pembuatan komponen reusable Tiptap editor (`components/features/blog/tiptap-editor.tsx` & `toolbar.tsx`).
-- [ ] **Langkah 4:** Setup upload handler gambar ke Firebase Storage.
-- [ ] **Langkah 5:** Implementasi halaman form create/edit di `app/(dashboard)/dashboard/blog/`.
-- [ ] **Langkah 6:** Integrasi data service / Server Action untuk penyimpanan artikel.
+- [x] **Langkah 1:** Instalasi dependensi BlockNote via `pnpm` (`@blocknote/core`, `@blocknote/react`, `@blocknote/shadcn`) dan penghapusan total paket TipTap lama.
+- [x] **Langkah 2:** Pembuatan skema database Drizzle (`db/schema/blog.schema.ts`) dengan koneksi langsung ke Supabase PostgreSQL & migrasi skema tabel `blogs`.
+- [x] **Langkah 3:** Pembuatan domain entity, skema Zod, repository, dan Server Actions di `modules/blog/`.
+- [x] **Langkah 4:** Pembuatan komponen editor Notion-style menggunakan BlockNote (`modules/blog/presentation/components/blocknote-editor.tsx`).
+- [x] **Langkah 5:** Implementasi kanvas halaman Notion di `blog-form.tsx` dan integrasi halaman create/edit di `app/(dashboard)/dashboard/blog/`.
+- [x] **Langkah 6:** Integrasi data table admin di `app/(dashboard)/dashboard/blog/page.tsx` dengan fitur read, pagination, dan delete Server Action.
+- [x] **Langkah 7:** Implementasi fitur Review & Preview interaktif (`blog-preview-modal.tsx`) dengan simulasi Viewport (Desktop, Tablet, Mobile) dan integrasi tombol Preview di form dan tabel blog.

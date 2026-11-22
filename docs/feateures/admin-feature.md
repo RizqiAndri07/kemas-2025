@@ -41,13 +41,29 @@ Sistem otentikasi admin memanfaatkan **Supabase Auth** (`@supabase/ssr`) yang di
 | Role | Deskripsi Hak Akses |
 | :--- | :--- |
 | **Superadmin** | Akses penuh: mengelola akun admin lain, pengaturan umum website, verifikasi pembayaran, manajemen kompetisi, dan CMS blog. |
-| **Admin Panitia (Committee)** | Akses operasional: memverifikasi pendaftaran peserta, memperbarui status kuota lomba, mengunduh data pendaftar (Excel/CSV). |
-| **Content Editor / Writer** | Akses editorial: menulis, mengedit, dan mempublikasikan artikel blog serta galeri berita. |
+| **Admin** | Akses operasional: memverifikasi pendaftaran peserta, memperbarui status kuota lomba, mengunduh data pendaftar (Excel/CSV). |
+| **CMS Writer** | Akses editorial: menulis, mengedit, dan mempublikasikan artikel blog serta liputan berita kegiatan. |
 
-### B. Fitur Manajemen User
-- **Daftar Admin:** Menampilkan nama, email, role, status aktif, dan waktu login terakhir.
-- **Undang / Tambah Admin:** Superadmin dapat mendaftarkan akun panitia baru dengan menetapkan role tertentu.
+### B. Fitur Manajemen User & Autentikasi
+- **Autentikasi Tertutup (No Public Registration):** Tidak ada registrasi publik untuk umum. Pengguna hanya dapat dibuat oleh pengguna berhak akses `Superadmin`.
+- **Integrasi Supabase Auth:** Akun disinkronkan langsung ke `auth.users` Supabase via Supabase Admin SDK dan PostgreSQL `usersTable`. Rincian lengkap ada pada [auth-feature.md](file:///home/kinggu/Documents/Project/kemas-2025/docs/feateures/auth-feature.md).
+- **Daftar Pengguna:** Menampilkan avatar, username, email, role, status verifikasi (`verified`/`unverified`), waktu terakhir login, dan tanggal pembuatan akun.
+- **Tambah / Edit Pengguna:** Superadmin dapat menambahkan akun baru dengan menetapkan username, email, role, dan kata sandi awal melalui modal dialog.
+- **Filter & Pencarian Cepat:** Pencarian berdasarkan username/email dan filter berdasarkan level peran (`Superadmin`, `Admin`, `CMS Writer`) serta status verifikasi.
 - **Audit / Activity Log:** Mencatat jejak audit krusial (misal: *Admin X memverifikasi Pendaftar Y*, *Admin Z mengubah status pendaftaran Futsal menjadi Closed*).
+
+### C. Skema Database Pengguna (`usersTable`)
+- **Tabel:** `users`
+- **Definisi Kolom:**
+  - `id`: `uuid` (Primary Key, default: `gen_random_uuid()`)
+  - `username`: `varchar(50)` (Unique, Not Null)
+  - `email`: `varchar(255)` (Unique, Not Null)
+  - `role`: `user_role` (`SUPERADMIN`, `ADMIN`, `CMS_WRITER`) (Not Null, default: `ADMIN`)
+  - `status`: `user_status` (`verified`, `unverified`) (Not Null, default: `unverified`)
+  - `last_login`: `timestamp with time zone` (Nullable)
+  - `created_at`: `timestamp with time zone` (Not Null, default: `now()`)
+  - `updated_at`: `timestamp with time zone` (Not Null, default: `now()`)
+- **Status Implementasi:** ✅ Selesai (Migrasi `drizzle/0003_green_iron_lad.sql`, UI tersedia di `/dashboard/users`).
 
 ---
 
@@ -71,20 +87,16 @@ Modul ini memfasilitasi publikasi artikel berita, dokumentasi, dan rilis pers ke
 
 ## 4. Manajemen Kompetisi (Competition Management)
 
-Modul ini berfokus pada pengendalian operasional kompetisi secara terpusat oleh panitia:
+Modul ini berfokus pada pengendalian operasional kompetisi dan event secara terpusat oleh panitia. Rincian skema dan spesifikasi lengkap didokumentasikan di [competition-feature.md](file:///home/kinggu/Documents/Project/kemas-2025/docs/feateures/competition-feature.md).
 
 ### Fitur Utama:
-1. **Katalog Manajemen Lomba:**
-   - Kartu/tabel status seluruh cabang lomba.
-   - Menampilkan: Nama lomba, status (*Open*, *Closing Soon*, *Closed*), jumlah pendaftar, dan kuota maksimal (jika ada batasan).
+1. **Katalog Manajemen Kompetisi & Event:**
+   - Tabel dan kartu status seluruh cabang kompetisi (Tournament) maupun agenda kegiatan (Event).
+   - Menampilkan: Nama, Tipe (`Tournament` / `Event`), Periode Buka & Tutup Pendaftaran, Jadwal Pelaksanaan Acara, Biaya (Rp / Free Entry), dan Status.
 2. **Kontrol Cepat (Quick Actions):**
    - **Toggle Status Pendaftaran:** Saklar (*switch*) untuk membuka atau menutup registrasi secara instan.
-   - **Pembaruan Link & Berkas:** Ubah URL buku panduan (Rulebook PDF), link grup koordinasi peserta, atau contact person narahubung.
-   - **Pengaturan Tanggal Penting:** Perbarui tanggal *technical meeting*, batas akhir pendaftaran, dan hari pelaksanaan.
-3. **Tautan Langsung ke Peserta Lomba:**
-   - Satu klik untuk melihat seluruh peserta yang terdaftar khusus pada cabang kompetisi tersebut.
-
-> *Catatan Detail Kompetisi:* Struktur form pendaftaran dinamis, persyaratan khusus, dan aturan validasi per cabang lomba akan ditambahkan setelah rincian spesifik diberikan.
+   - **Form Tambah & Edit Kompetisi:** Input nama, tipe, jadwal registrasi, jadwal acara, biaya, kuota, dan deskripsi.
+   - **Hapus Kompetisi:** Konfirmasi penghapusan aman via `AlertDialog`.
 
 ---
 
@@ -123,3 +135,32 @@ Tampilan awal saat admin login ke `/dashboard`:
   - Diagram pendaftar per cabang lomba.
 - **Antrean Registrasi Terbaru:**
   - 5-10 pendaftar terbaru yang memerlukan verifikasi cepat oleh panitia.
+
+---
+
+## 7. Arsitektur Komponen UI (100% Shadcn & Reusable)
+
+Sesuai instruksi dan panduan standar, **seluruh antarmuka admin dashboard wajib dibangun menggunakan komponen Shadcn UI** dan terbagi menjadi modul-modul reusable:
+
+### A. Primitif Shadcn UI Wajib (`components/ui/`)
+1. **`Table`**: Basis perenderan seluruh antrean pendaftar, manajemen kompetisi, daftar artikel CMS blog, daftar akun panitia, dan audit log.
+2. **`Card`**: Penopang kartu statistik metrik (`StatCard`), panel kontainer data, dan pratinjau ringkasan pendaftar.
+3. **`Badge`**: Penanda status terstandarisasi (`StatusBadge`) untuk registrasi (`Pending`, `Verified`, `Rejected`), status artikel (`Draft`, `Published`), serta status pendaftaran lomba (`Open`, `Closed`).
+4. **`Button`**: Seluruh tombol interaksi (aksi verifikasi, tombol submit, filter, navigasi, dan trigger modal).
+5. **`Dialog`**: Modal pop-up untuk pratinjau bukti bayar, konfirmasi persetujuan/penolakan pendaftar, dan dialog tambah akun admin.
+6. **`DropdownMenu`**: Menu opsi baris tabel (aksi per entitas: *Edit, Hapus, Detail, Verifikasi*) dan menu profil admin di topbar header.
+7. **`Avatar`**: Menampilkan inisial atau foto profil panitia yang sedang login.
+8. **`Input` & `Select`**: Kolom pencarian, input teks formulir admin, dan dropdown filter kategori/status.
+9. **`Sheet`**: Drawer navigasi sidebar responsif untuk tampilan mobile (< 1024px) serta drawer detail berkas.
+10. **`Tabs`**: Tab navigasi cepat antar-kategori status (misal: Semua, Pending, Verified, Rejected).
+11. **`Skeleton`**: Animasi loading placeholder saat data sedang diambil secara asinkronus dari PostgreSQL.
+
+### B. Modul Komponen Reusable Dashboard (`components/dashboard/`)
+- **`DashboardSidebar.tsx`**: Sidebar navigasi modular dengan dukungan desktop fixed dan mobile drawer.
+- **`DashboardHeader.tsx`**: Header terpadu dengan breadcrumb dan menu profil admin.
+- **`StatCard.tsx`**: Komponen reusable kartu metrik dengan visual ikon, title, value, tren, dan deskripsi.
+- **`StatusBadge.tsx`**: Komponen status badge yang memetakan status data ke token visual warna secara konsisten.
+- **`PageHeader.tsx`**: Komponen header reusable untuk setiap sub-halaman dashboard (judul, deskripsi, slot tombol aksi).
+- **`EmptyState.tsx`**: Tampilan visual terpadu saat tabel atau koleksi data masih kosong.
+- **`DataTablePagination.tsx`**: Pengendali pagination dan navigasi halaman tabel terpadu.
+

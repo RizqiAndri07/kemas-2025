@@ -27,7 +27,7 @@ Workflow ini digunakan oleh Agent atau developer ketika akan menambahkan fitur b
 2. Buat skema validasi Zod di folder `schema/`:
    - Validasi setiap input (panjang karakter, format email/telepon, tipe file berkas).
    - Pastikan pesan validasi berbahasa Indonesia yang jelas.
-3. Jika melibatkan tabel database baru di Prisma / skema PostgreSQL, dokumentasikan model datanya di `docs/architechture/`.
+3. Jika melibatkan tabel database baru di Drizzle ORM / skema PostgreSQL, dokumentasikan model datanya di `docs/architechture/`.
 
 ---
 

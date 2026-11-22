@@ -1,8 +1,2 @@
-interface ContactPerson {
-  id: number;
-  event: string;
-  name: string;
-  phone: string;
-}
-
-export default ContactPerson;
+import type { ContactPerson } from "@/modules/competition/domain/competition.interface";
+export type { ContactPerson as default };

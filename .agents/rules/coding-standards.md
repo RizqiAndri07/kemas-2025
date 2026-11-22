@@ -47,3 +47,33 @@ Panduan standar penulisan kode untuk proyek **Kemas Prasasti 2025**.
 - Komponen domain-specific (misal: `CompetitionCard`, `HeroBanner`, `RegistrationForm`) disimpan di `components/features/` atau subfolder komponen yang relevan.
 - Gunakan helper `cn()` dari `lib/utils.ts` untuk penggabungan conditional class.
 
+---
+
+## 5. Standar Komponen Admin Dashboard (Shadcn UI & Reusability)
+
+Seluruh antarmuka pada area **Admin Dashboard** (`app/(dashboard)`) **WAJIB** memenuhi standar arsitektur komponen berikut:
+
+1. **Wajib Memanfaatkan Primitif Shadcn UI (`pnpm dlx shadcn@latest add`):**
+   - Setiap komponen pada area dashboard wajib mengambil dan menggunakan komponen resmi dari Shadcn UI.
+   - **Protokol Penambahan Komponen:**
+     1. Periksa ketersediaan komponen di `components/ui/` terlebih dahulu. Jika sudah ada, gunakan yang sudah tersedia.
+     2. Jika komponen belum tersedia di direktori proyek, lakukan download/instalasi dengan menjalankan perintah:
+        ```bash
+        pnpm dlx shadcn@latest add {component}
+        ```
+   - Dilarang membuat komponen atomik secara ad-hoc/manual jika padanannya tersedia di Shadcn UI (`Table`, `Card`, `Badge`, `Button`, `Dialog`, `DropdownMenu`, `Avatar`, `Input`, `Select`, `Tabs`, `Skeleton`, `Sheet`, `Switch`, `Textarea`, dll.).
+2. **Modular & Reusable Component System (`components/dashboard/`):**
+   - Halaman `page.tsx` di dalam `(dashboard)` hanya berfungsi sebagai perakit tata letak (*composition layer*) dan pengambil data (*data-fetching layer*), **bukan** tempat menulis ratusan baris markup UI inline.
+   - Seluruh elemen dashboard umum wajib dipecah menjadi komponen reusable di `components/dashboard/`:
+     - **`DashboardShell` & `DashboardLayout`:** Struktur shell terpadu yang membungkus konten admin.
+     - **`DashboardSidebar`:** Navigasi sidebar responsif (desktop fixed + mobile drawer via `Sheet`).
+     - **`DashboardHeader`:** Topbar dengan breadcrumb, indikator role admin, dan menu profil admin (`DropdownMenu` & `Avatar`).
+     - **`StatCard`:** Kartu indikator metrik reusable (Title, Value, Change/Trend, Icon, Deskripsi) berbasis `Card`.
+     - **`StatusBadge`:** Pemetaan status konsisten (`Pending`, `Verified`, `Rejected`, `Draft`, `Published`, `Open`, `Closed`) berbasis `Badge`.
+     - **`PageHeader`:** Header halaman dashboard terstandarisasi dengan slot judul, subtitle/deskripsi, dan tombol aksi (misal "Tambah Artikel", "Ekspor CSV").
+     - **`EmptyState`:** Indikator visual saat tabel/koleksi data kosong dengan ikon dan tombol aksi kontekstual.
+     - **`DataTablePagination` / `DataTable`:** Pengendali paginasi, pencarian, dan filter tabel terpusat.
+3. **Props Bersih & TypeScript Strict:**
+   - Setiap komponen reusable wajib memiliki interface Props yang eksplisit (`[ComponentName]Props`).
+   - Mendukung prop `className` opsional dengan `cn()` untuk ekstensi layout bila diperlukan.
+
