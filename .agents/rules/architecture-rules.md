@@ -72,3 +72,26 @@ Proyek ini memanfaatkan arsitektur modern fullstack:
   - Konfigurasi `drizzle-kit` untuk membaca `db/schema/` dan menghasilkan artefak migrasi SQL di folder `drizzle/`.
 - **`services/`**:
   - Berisi fungsi business logic yang memisahkan antara handler UI/API dan akses data mentah Drizzle.
+
+---
+
+## 4. Standar Wajib Skema Database (Audit Timestamp createdAt & updatedAt)
+
+Setiap kali mendefinisikan atau membuat skema tabel database baru di Drizzle ORM (`pgTable`):
+
+1. **Wajib Memiliki Field Audit Waktu:**
+   - Field **`createdAt`** dan **`updatedAt`** adalah atribut **wajib (mandatory / default)** pada seluruh skema entitas data utama untuk keperluan audit trail dan integritas data.
+2. **Definisi Standar Drizzle ORM:**
+   ```typescript
+   import { timestamp } from "drizzle-orm/pg-core";
+
+   // Standar kolom waktu pada setiap tabel
+   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+   updatedAt: timestamp("updated_at", { withTimezone: true })
+     .defaultNow()
+     .$onUpdate(() => new Date())
+     .notNull(),
+   ```
+3. **Pengecualian Khusus:**
+   - Tabel relasi *junction/pivot* (relasi $M:N$, misal `competition_contact_persons`) atau log token immutable yang tidak pernah mengalami operasi *update* minimal **wajib memiliki `createdAt`**.
+   - Seluruh tabel entitas bisnis reguler lainnya **wajib memiliki kedua field tersebut (`createdAt` & `updatedAt`)**.

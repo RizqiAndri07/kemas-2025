@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
 import { Plus_Jakarta_Sans } from "next/font/google";
 import "../globals.css";
-import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
+import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
+import { Toaster } from "@/components/ui/sonner";
+import { ThemeProvider } from "@/components/theme-provider";
 
 const jakartaSans = Plus_Jakarta_Sans({
   variable: "--font-plus-jakarta-sans",
@@ -21,19 +23,28 @@ export default function DashboardRootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="id">
+    <html lang="id" suppressHydrationWarning>
       <body
         className={`${jakartaSans.variable} font-sans antialiased bg-background text-foreground`}
       >
-        <SidebarProvider defaultOpen={true}>
-          <DashboardSidebar />
-          <SidebarInset className="min-w-0">
-            <DashboardHeader />
-            <main className="flex-1 p-4 md:p-8 w-full mx-auto">
-              {children}
-            </main>
-          </SidebarInset>
-        </SidebarProvider>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <SidebarProvider defaultOpen={true}>
+            <DashboardSidebar />
+            <SidebarInset className="min-w-0">
+              <DashboardHeader />
+              <SidebarTrigger className="fixed z-50 top-5"/>
+              <main className="flex-1 p-4 md:p-8 w-full mx-auto">
+                {children}
+              </main>
+            </SidebarInset>
+          </SidebarProvider>
+          <Toaster position="top-center" />
+        </ThemeProvider>
       </body>
     </html>
   );

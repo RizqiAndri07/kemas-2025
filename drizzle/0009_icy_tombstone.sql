@@ -1,0 +1,1 @@
+ALTER TABLE "competitions" ADD COLUMN "guidebook_url" text;

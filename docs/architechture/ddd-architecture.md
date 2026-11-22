@@ -102,9 +102,9 @@ flowchart TD
 
 ### C. Infrastructure Layer (`infrastructure/`)
 - Mengimplementasikan akses ke teknologi eksternal:
-  - Definisi tabel Drizzle ORM (`pgTable`).
+  - Definisi tabel Drizzle ORM (`pgTable`) dengan standar wajib field audit `createdAt` dan `updatedAt`.
   - Repositori query database (`db.select()`, `db.query`).
-  - Pengunggahan berkas ke Supabase Storage.
+  - Pengunggahan berkas ke Supabase Storage atau penyimpanan publik lokal.
   - Komunikasi otentikasi via Supabase Auth SDK.
 
 ### D. Presentation Layer (`presentation/`)

@@ -73,7 +73,56 @@ Seluruh antarmuka pada area **Admin Dashboard** (`app/(dashboard)`) **WAJIB** me
      - **`PageHeader`:** Header halaman dashboard terstandarisasi dengan slot judul, subtitle/deskripsi, dan tombol aksi (misal "Tambah Artikel", "Ekspor CSV").
      - **`EmptyState`:** Indikator visual saat tabel/koleksi data kosong dengan ikon dan tombol aksi kontekstual.
      - **`DataTablePagination` / `DataTable`:** Pengendali paginasi, pencarian, dan filter tabel terpusat.
-3. **Props Bersih & TypeScript Strict:**
+3. **Standar Data Table Shadcn UI (Wajib - Bukan Tabel Biasa):**
+   - Setiap tabel data yang dibuat pada area admin dashboard **dilarang menggunakan tabel biasa / statis**.
+   - Setiap tabel **wajib** mengintegrasikan kontrol standar Data Table:
+     - Header sorting interaktif (`DataTableColumnHeader`) pada kolom-kolom utama.
+     - Toolbar filter dan input pencarian reaktif.
+     - Paginasi data lengkap (`DataTablePagination`) dengan pengaturan baris per halaman (*rows per page*: 5, 10, 20, 50).
+     - Tampilan kosong (*empty state*) terstandarisasi dengan `EmptyState`.
+4. **Props Bersih & TypeScript Strict:**
    - Setiap komponen reusable wajib memiliki interface Props yang eksplisit (`[ComponentName]Props`).
    - Mendukung prop `className` opsional dengan `cn()` untuk ekstensi layout bila diperlukan.
+
+---
+
+## 6. Standar Skema Database & Audit Timestamp (Drizzle ORM)
+
+Setiap kali membuat atau mendefinisikan skema tabel database baru di Drizzle ORM (`pgTable`):
+
+1. **Wajib Memiliki Kolom Audit `createdAt` & `updatedAt`:**
+   - Kolom **`createdAt`** dan **`updatedAt`** adalah atribut bawaan (*default*) yang **wajib** ada pada setiap tabel data utama untuk menjamin integritas riwayat pencatatan data.
+2. **Definisi Standar:**
+   ```typescript
+   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+   updatedAt: timestamp("updated_at", { withTimezone: true })
+     .defaultNow()
+     .$onUpdate(() => new Date())
+     .notNull(),
+   ```
+3. **Pengecualian:**
+   - Pada tabel relasi pivot many-to-many (misal: `competition_contact_persons`) atau tabel token/log yang bersifat immutable (hanya sekali dibuat dan tidak pernah diperbarui), minimal kolom **`createdAt`** wajib disertakan.
+
+---
+
+## 7. Standar Notifikasi Toast & Feedback Error Handling (Shadcn UI)
+
+Seluruh umpan balik aksi pengguna (*mutasi data, login, create, update, delete, submit form, upload berkas*) dan *error handling* **WAJIB** menggunakan komponen **Toast Shadcn UI (`sonner`)** di posisi **kanan bawah**:
+
+1. **Posisi Standar Wajib:**
+   - Toast selalu ditampilkan di **kanan bawah** (`position="bottom-right"`).
+2. **Penggunaan `toast`:**
+   ```typescript
+   import { toast } from "@/components/ui/sonner";
+
+   // Notifikasi Berhasil:
+   toast.success("Data berhasil diperbarui!");
+
+   // Notifikasi Gagal / Error Handling:
+   toast.error(res.error || "Gagal memproses data.");
+   ```
+3. **Aturan Integrasi:**
+   - Jangan menampilkan alert statis yang mengganggu alur UI jika notifikasi toast sudah cukup mewakili informasi status.
+   - Pada aksi asinkron berat, disarankan menggunakan `toast.loading()` atau `toast.promise()` jika diperlukan.
+   - Pemasangan `<Toaster position="bottom-right" richColors />` berada di root layout.
 

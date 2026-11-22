@@ -57,6 +57,7 @@ import {
   toggleBlogStatusAction,
 } from "../../application/blog.actions";
 import { BlogPreviewModal } from "./blog-preview-modal";
+import { toast } from "@/components/ui/sonner";
 
 interface BlogTableProps {
   blogs: BlogSelect[];
@@ -144,7 +145,12 @@ export function BlogTable({ blogs }: BlogTableProps) {
     const targetId = blogToDelete.id;
 
     startTransition(async () => {
-      await deleteBlogAction(targetId);
+      const res = await deleteBlogAction(targetId);
+      if (res.success) {
+        toast.success(res.message || "Artikel berhasil dihapus!");
+      } else {
+        toast.error(res.error || "Gagal menghapus artikel.");
+      }
       setBlogToDelete(null);
       router.refresh();
     });
@@ -152,7 +158,12 @@ export function BlogTable({ blogs }: BlogTableProps) {
 
   const handleToggleComment = (id: string, currentStatus: boolean) => {
     startTransition(async () => {
-      await toggleBlogCommentAction(id, !currentStatus);
+      const res = await toggleBlogCommentAction(id, !currentStatus);
+      if (res.success) {
+        toast.success(res.message || "Pengaturan komentar artikel berhasil diubah!");
+      } else {
+        toast.error(res.error || "Gagal mengubah pengaturan komentar.");
+      }
       router.refresh();
     });
   };
@@ -160,7 +171,12 @@ export function BlogTable({ blogs }: BlogTableProps) {
   const handleToggleStatus = (id: string, currentStatus: string) => {
     const nextStatus = currentStatus === "PUBLIC" ? "PRIVATE" : "PUBLIC";
     startTransition(async () => {
-      await toggleBlogStatusAction(id, nextStatus);
+      const res = await toggleBlogStatusAction(id, nextStatus);
+      if (res.success) {
+        toast.success(res.message || `Status artikel diubah menjadi ${nextStatus}!`);
+      } else {
+        toast.error(res.error || "Gagal mengubah status artikel.");
+      }
       router.refresh();
     });
   };

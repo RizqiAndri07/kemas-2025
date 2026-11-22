@@ -6,6 +6,8 @@ import Footer from "@/components/Footer";
 import Image from "next/image";
 import localfont from "next/font/local";
 import OrganizationSchema from "../schema";
+import { Toaster } from "@/components/ui/sonner";
+import { ThemeProvider } from "@/components/theme-provider";
 
 const poppins = Poppins({
   variable: "--font-poppins",
@@ -49,28 +51,36 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <head>
         <OrganizationSchema />
       </head>
       <body
         className={` ${BiscuitGlitch.variable} ${poppins.variable} antialiased bg-linear-to-b from-accent/40 to-secondary/20`}
       >
-        <Navbar />
-        <main className="min-h-screen scroll-smooth px-4 md:px-22 lg:px-38">
-          {children}
-        </main>
-        <div className="relative">
-          <div className="absolute h-screen bg-linear-to-t from-primary/20 to-primary/10 w-full blur-2xl -top-[500px] -z-40"></div>
-          <Image
-            src={"/Vector.svg"}
-            alt="Vector"
-            className="w-full "
-            width={0}
-            height={0}
-          />
-        </div>
-        <Footer />
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <Navbar />
+          <main className="min-h-screen scroll-smooth px-4 md:px-22 lg:px-38">
+            {children}
+          </main>
+          <div className="relative">
+            <div className="absolute h-screen bg-linear-to-t from-primary/20 to-primary/10 w-full blur-2xl -top-[500px] -z-40"></div>
+            <Image
+              src={"/Vector.svg"}
+              alt="Vector"
+              className="w-full "
+              width={0}
+              height={0}
+            />
+          </div>
+          <Footer />
+          <Toaster position="bottom-right" richColors />
+        </ThemeProvider>
       </body>
     </html>
   );

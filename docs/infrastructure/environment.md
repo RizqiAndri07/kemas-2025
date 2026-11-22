@@ -44,6 +44,19 @@ DIRECT_URL="postgresql://postgres.[project-id]:[password]@aws-0-[region].pooler.
 NEXT_PUBLIC_STORAGE_BUCKET_BLOG="blog-media"
 NEXT_PUBLIC_STORAGE_BUCKET_REGISTRATION="registration-proofs"
 NEXT_PUBLIC_STORAGE_BUCKET_ASSETS="competition-assets"
+
+# ==========================================
+# EMAIL / SMTP CONFIGURATION (Mailpit & Production)
+# ==========================================
+# Untuk development lokal bebas spam, gunakan Mailpit (SMTP: port 1025, Web UI: port 8025)
+# Docker: docker run -d -p 1025:1025 -p 8025:8025 --name mailpit axllent/mailpit
+SMTP_HOST="localhost"
+SMTP_PORT=1025
+SMTP_USER=""
+SMTP_PASSWORD=""
+SMTP_SECURE="false" # "true" untuk port 465 (SSL), "false" untuk port 587/1025 (TLS/STARTTLS)
+SMTP_FROM="Kemas Prasasti 2025 <noreply@kemasprasasti.com>"
+
 ```
 
 ---

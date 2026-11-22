@@ -56,6 +56,39 @@ Sebelum melakukan tindakan apa pun di repository ini, AI Agent **WAJIB** mematuh
 5. **SHADCN UI FIRST UNTUK DASHBOARD:**
    - Setiap komponen pada area dashboard **WAJIB** menggunakan komponen dari Shadcn UI.
    - **Alur Kerja Penggunaan:** Periksa terlebih dahulu ketersediaan komponen di `components/ui/`. Jika sudah tersedia, gunakan komponen yang ada. Jika belum tersedia, unduh menggunakan perintah resmi: `pnpm dlx shadcn@latest add {component}`. Dilarang membuat komponen atomik secara manual/ad-hoc jika padanannya ada di katalog Shadcn UI.
+6. **STANDAR DATA TABLE SHADCN UI (BUKAN TABEL BIASA):**
+   - Setiap tabel data yang dibuat pada seluruh antarmuka aplikasi (khususnya Admin Dashboard) **WAJIB** menggunakan standar Data Table berbasis Shadcn UI (`components/ui/table` didukung `@tanstack/react-table` atau arsitektur modular Data Table dashboard), **dilarang membuat tabel biasa / HTML statis tanpa kontrol interaktif**.
+   - **Fitur Standar Wajib pada Setiap Tabel:**
+     1. **Sorting Interaktif:** Kolom data penting harus mendukung pengurutan arah (*Ascending / Descending*) menggunakan komponen `DataTableColumnHeader`.
+     2. **Pencarian / Filtering Global:** Dilengkapi toolbar input pencarian reaktif untuk memfilter baris data secara instan.
+     3. **Paginasi Terpadu:** Memiliki kontrol navigasi halaman dan opsi pemilih jumlah baris per halaman (*rows per page*: 5, 10, 20, 50) menggunakan komponen `DataTablePagination`.
+     4. **Empty State:** Menampilkan status kosong yang informatif menggunakan `EmptyState` saat tidak ada data atau hasil pencarian nihil.
+     5. **Aksi Terstruktur:** Tombol aksi pada tiap baris menggunakan pola `DropdownMenu` atau icon button dengan tooltip yang jelas.
+7. **STANDAR WAJIB FIELD createdAt & updatedAt PADA SETIAP SKEMA TABEL DATABASE:**
+   - Setiap kali membuat atau mendefinisikan skema tabel baru di Drizzle ORM (`pgTable`), field **`createdAt`** dan **`updatedAt`** **WAJIB** ada secara default sebagai standar audit trail pencatatan waktu sistem.
+   - **Format Standar Wajib Drizzle ORM:**
+     ```typescript
+     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+     updatedAt: timestamp("updated_at", { withTimezone: true })
+       .defaultNow()
+       .$onUpdate(() => new Date())
+       .notNull(),
+     ```
+   - *(Catatan: Pada tabel relasi pivot M:N atau log token immutable yang tidak pernah diperbarui, minimal `createdAt` wajib ada. Pada seluruh entitas data utama, kedua field tersebut wajib ada).*
+8. **STANDAR NOTIFIKASI FEEDBACK & ERROR HANDLING (TOAST SHADCN UI DI KANAN BAWAH):**
+   - Setiap kali melakukan mutasi data, mengeksekusi Server Action, atau menangani error handling pada aplikasi, informasi status **BERHASIL** maupun **GAGAL/ERROR** **WAJIB** ditampilkan menggunakan komponen **Toast Shadcn UI (`sonner`)**.
+   - **Posisi Notifikasi Wajib:** Notifikasi toast **WAJIB** dikonfigurasi di posisi **kanan bawah (`position="bottom-right"`)**.
+   - **Standar Kode Penggunaan:**
+     ```typescript
+     import { toast } from "@/components/ui/sonner";
+
+     // Aksi Berhasil
+     toast.success(res.message || "Aksi berhasil diproses!");
+
+     // Aksi Gagal / Error Handling
+     toast.error(res.error || "Terjadi kesalahan saat memproses permintaan.");
+     ```
+   - Komponen `<Toaster position="bottom-right" richColors />` dipasang di root layout dan dipanggil secara konsisten di seluruh form, dialog, dan tombol aksi interaktif.
 
 ---
 
@@ -102,7 +135,7 @@ kemas-2025/
 Arsitektur backend dan data layer secara penuh menggunakan **Supabase** dan **PostgreSQL**:
 - **Supabase Auth:** Autentikasi admin dengan session cookies terenkripsi (SSR) via `@supabase/ssr`, RBAC (Superadmin, Committee, Content Editor).
 - **PostgreSQL (Supabase Database):** Single source of truth untuk seluruh entitas data relasional (Peserta, Pendaftaran, Cabang Lomba, Verifikasi Pembayaran, Artikel Blog).
-- **Drizzle ORM:** Data access layer TypeScript-first yang ultra-ringan tanpa overhead binary engine. Skema didefinisikan secara deklaratif di `db/schema/`, query type-safe dengan SQL-like syntax & Relational Queries, serta migrasi terstruktur via `drizzle-kit`.
+- **Drizzle ORM:** Data access layer TypeScript-first yang ultra-ringan tanpa overhead binary engine. Skema didefinisikan secara deklaratif di `db/schema/`, query type-safe dengan SQL-like syntax & Relational Queries, serta migrasi terstruktur via `drizzle-kit`. Seluruh skema tabel **wajib** menyertakan field default audit `createdAt` dan `updatedAt`.
 - **Supabase Storage:** Penyimpanan berkas pendaftaran peserta, scan identitas, dan aset gambar/media artikel CMS Blog.
 - **Supabase Realtime:** Sinkronisasi realtime status kuota lomba dan pembaruan data secara live melalui Postgres Changes / Broadcast.
 

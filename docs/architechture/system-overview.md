@@ -93,6 +93,15 @@ flowchart TD
     2. **SQL-like API (`db.select().from(...).where(...)`):** Kontrol penuh atas query SQL dengan overhead mendekati nol.
   - Migrasi skema dikelola melalui `drizzle-kit` (`drizzle-kit generate` & `drizzle-kit migrate` / `drizzle-kit push`).
   - Inferensi tipe otomatis langsung dari tabel via `$inferSelect` dan `$inferInsert`.
+  - **Standar Kolom Wajib (`createdAt` & `updatedAt`):** Seluruh skema tabel yang didefinisikan wajib menyertakan kolom audit trail waktu:
+    ```typescript
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .defaultNow()
+      .$onUpdate(() => new Date())
+      .notNull(),
+    ```
+    *(Tabel relasi pivot $M:N$ atau log token satu arah minimal wajib memiliki `createdAt`)*.
 
 ---
 

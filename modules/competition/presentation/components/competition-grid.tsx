@@ -13,15 +13,17 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { CompetitionSelect } from "../../infrastructure/competition.table";
+import { EventDocumentSelect } from "../../infrastructure/event-document.table";
 import { CompetitionCard } from "./competition-card";
 import { AddCompetitionCard } from "./add-competition-card";
 import { EmptyState } from "@/components/dashboard/EmptyState";
 
 interface CompetitionGridProps {
   competitions: CompetitionSelect[];
+  documentsMap?: Record<string, EventDocumentSelect[]>;
 }
 
-export function CompetitionGrid({ competitions }: CompetitionGridProps) {
+export function CompetitionGrid({ competitions, documentsMap = {} }: CompetitionGridProps) {
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState<string>("ALL");
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
@@ -110,7 +112,11 @@ export function CompetitionGrid({ competitions }: CompetitionGridProps) {
 
         {/* Remaining Competition Cards */}
         {filteredCompetitions.map((comp) => (
-          <CompetitionCard key={comp.id} competition={comp} />
+          <CompetitionCard
+            key={comp.id}
+            competition={comp}
+            documents={documentsMap[comp.id] || []}
+          />
         ))}
       </div>
 

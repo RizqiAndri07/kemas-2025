@@ -33,3 +33,25 @@ export const createUserWithPasswordSchema = z.object({
 });
 
 export type CreateUserWithPasswordInput = z.infer<typeof createUserWithPasswordSchema>;
+
+// Schema untuk Update / Setup Kata Sandi Mandiri oleh Pengguna
+export const setupPasswordSchema = z
+  .object({
+    token: z.string().min(1, "Token verifikasi wajib disertakan"),
+    password: z
+      .string()
+      .min(8, "Kata sandi minimal 8 karakter")
+      .regex(/[a-zA-Z]/, "Kata sandi wajib memuat huruf")
+      .regex(/[0-9]/, "Kata sandi wajib memuat angka"),
+    confirmPassword: z.string().min(1, "Konfirmasi kata sandi wajib diisi"),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Konfirmasi kata sandi tidak cocok",
+    path: ["confirmPassword"],
+  });
+
+export type SetupPasswordInput = z.infer<typeof setupPasswordSchema>;
+
+// Schema untuk Reset Kata Sandi
+export const resetPasswordSchema = setupPasswordSchema;
+export type ResetPasswordInput = SetupPasswordInput;

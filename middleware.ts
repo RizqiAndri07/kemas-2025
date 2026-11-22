@@ -1,5 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { registrationRateLimiter } from "@/lib/rate-limiter";
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -18,10 +19,55 @@ export async function middleware(request: NextRequest) {
     return new NextResponse(null, { status: 410 });
   }
 
-  // 2. Inisialisasi Response dengan sinkronisasi cookie @supabase/ssr
+  // 2. Proteksi Rate Limiting Pendaftaran (Maksimal 3x per menit per IP / Session)
+  const isRegistrationSubmission =
+    request.method === "POST" &&
+    (pathname.includes("/register") ||
+      pathname.startsWith("/api/registrations") ||
+      pathname.includes("/pendaftaran"));
+
+  if (isRegistrationSubmission) {
+    const forwardedFor = request.headers.get("x-forwarded-for");
+    const realIp = request.headers.get("x-real-ip");
+    const ip = forwardedFor ? forwardedFor.split(",")[0].trim() : realIp || "127.0.0.1";
+    const sessionId = request.cookies.get("kp_reg_session")?.value || "anon";
+    const rateLimitKey = `reg_${ip}_${sessionId}`;
+
+    const check = registrationRateLimiter.check(rateLimitKey);
+    if (!check.success) {
+      return new NextResponse(
+        JSON.stringify({
+          error: `Terlalu banyak permintaan pendaftaran dari perangkat/IP Anda. Batas maksimal adalah 3 pendaftaran per menit. Silakan coba lagi dalam ${check.retryAfterSeconds} detik.`,
+          retryAfterSeconds: check.retryAfterSeconds,
+        }),
+        {
+          status: 429,
+          headers: {
+            "Content-Type": "application/json",
+            "Retry-After": String(check.retryAfterSeconds),
+            "X-RateLimit-Limit": String(check.limit),
+            "X-RateLimit-Remaining": "0",
+          },
+        }
+      );
+    }
+  }
+
+  // 3. Inisialisasi Response dengan sinkronisasi cookie @supabase/ssr
   let supabaseResponse = NextResponse.next({
     request,
   });
+
+  // Pasang cookie session tracking jika belum ada untuk akurasi rate limiting
+  if (!request.cookies.has("kp_reg_session")) {
+    const newSessionId = crypto.randomUUID();
+    supabaseResponse.cookies.set("kp_reg_session", newSessionId, {
+      path: "/",
+      httpOnly: true,
+      sameSite: "lax",
+      maxAge: 60 * 60 * 24 * 30, // 30 hari
+    });
+  }
 
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseKey =

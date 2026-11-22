@@ -29,6 +29,7 @@ import { BlogFormInput } from "../../domain/blog.schema";
 import { createBlogAction, updateBlogAction } from "../../application/blog.actions";
 import { uploadBlogImageAction } from "../../application/blog-upload.action";
 import { BlogPreviewModal } from "./blog-preview-modal";
+import { toast } from "@/components/ui/sonner";
 
 // Dynamic import untuk BlockNote editor agar hanya dieksekusi di sisi client (No SSR)
 const BlockNoteEditor = dynamic(
@@ -165,12 +166,16 @@ export function BlogForm({ initialData, isEdit = false }: BlogFormProps) {
     setErrorMessage(null);
 
     if (title.trim().length < 5) {
-      setErrorMessage("Judul artikel minimal 5 karakter.");
+      const msg = "Judul artikel minimal 5 karakter.";
+      setErrorMessage(msg);
+      toast.error(msg);
       return;
     }
 
     if (description.trim().length < 10) {
-      setErrorMessage("Isi artikel masih kosong. Tuliskan konten minimal 10 karakter.");
+      const msg = "Isi artikel masih kosong. Tuliskan konten minimal 10 karakter.";
+      setErrorMessage(msg);
+      toast.error(msg);
       return;
     }
 
@@ -200,15 +205,17 @@ export function BlogForm({ initialData, isEdit = false }: BlogFormProps) {
 
               const uploadRes = await uploadBlogImageAction(formData);
               if (!uploadRes.success) {
-                setErrorMessage(
-                  uploadRes.error || "Gagal mengunggah gambar artikel ke storage."
-                );
+                const msg = uploadRes.error || "Gagal mengunggah gambar artikel ke storage.";
+                setErrorMessage(msg);
+                toast.error(msg);
                 setUploadProgressText(null);
                 return;
               }
 
               if (!uploadRes.data?.url) {
-                setErrorMessage("URL berkas hasil unggahan tidak ditemukan.");
+                const msg = "URL berkas hasil unggahan tidak ditemukan.";
+                setErrorMessage(msg);
+                toast.error(msg);
                 setUploadProgressText(null);
                 return;
               }
@@ -248,28 +255,32 @@ export function BlogForm({ initialData, isEdit = false }: BlogFormProps) {
 
         if (res.success) {
           setIsSaved(true);
+          toast.success(res.message || (isEdit ? "Artikel berhasil diperbarui!" : "Artikel baru berhasil diterbitkan!"));
           setTimeout(() => {
             router.push("/dashboard/blog");
             router.refresh();
           }, 500);
         } else {
-          setErrorMessage(res.error || "Gagal menyimpan artikel ke database.");
+          const msg = res.error || "Gagal menyimpan artikel ke database.";
+          setErrorMessage(msg);
+          toast.error(msg);
         }
       } catch (err) {
         setUploadProgressText(null);
-        setErrorMessage(
+        const msg =
           err instanceof Error
             ? err.message
-            : "Terjadi kesalahan internal saat memproses artikel."
-        );
+            : "Terjadi kesalahan internal saat memproses artikel.";
+        setErrorMessage(msg);
+        toast.error(msg);
       }
     });
   };
 
   return (
-    <div className="min-h-screen w-full bg-background pb-24">
-      {/* Notion-style Top Sticky Header */}
-      <header className="sticky top-0 z-30 flex h-14 w-full items-center justify-between border-b border-border/60 bg-background/95 backdrop-blur sm:px-8">
+    <div className="w-full pb-20">
+      {/* Top Header Action Bar */}
+      <div className="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-border/60 w-full">
         {/* Sisi Kiri: Navigasi & Status */}
         <div className="flex items-center gap-3">
           <Link href="/dashboard/blog">
@@ -385,12 +396,12 @@ export function BlogForm({ initialData, isEdit = false }: BlogFormProps) {
             )}
           </Button>
         </div>
-      </header>
+      </div>
 
       {/* Notion Document Canvas with Hashtag Sidebar */}
-      <main className="mx-auto max-w-6xl px-4 pt-10 flex flex-col md:flex-row-reverse gap-8 sm:px-12">
+      <div className="w-full pt-6 flex flex-col lg:flex-row-reverse gap-8">
         {/* Right Sidebar: Hashtag Section */}
-        <aside className="w-full md:w-64 shrink-0 md:border-l md:border-border/60 md:pl-6 space-y-3">
+        <aside className="w-full lg:w-72 shrink-0 lg:border-l lg:border-border/60 lg:pl-6 space-y-3">
           <div className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
             <TagIcon className="h-3.5 w-3.5 text-primary" />
             <span>Hashtags</span>
@@ -475,7 +486,7 @@ export function BlogForm({ initialData, isEdit = false }: BlogFormProps) {
           <Separator className="my-6 opacity-40" />
 
           {/* Notion Block Editor Canvas */}
-          <div className="notion-editor-canvas">
+          <div className="notion-editor-canvas w-full">
             <BlockNoteEditor
               initialContent={description}
               onChange={(html) => setDescription(html)}
@@ -483,7 +494,7 @@ export function BlogForm({ initialData, isEdit = false }: BlogFormProps) {
             />
           </div>
         </div>
-      </main>
+      </div>
 
       {/* Interactive Review & Preview Modal */}
       <BlogPreviewModal

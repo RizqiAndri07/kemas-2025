@@ -16,6 +16,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Separator } from "@/components/ui/separator";
+import { ThemeToggle } from "@/components/dashboard/theme-toggle";
 import {
   getCurrentSessionUser,
   logoutAction,
@@ -97,11 +98,9 @@ export function DashboardHeader({ title, description }: DashboardHeaderProps) {
   const initials = displayName.slice(0, 2).toUpperCase();
 
   return (
-    <header className="sticky top-0 z-30 flex h-16 w-full items-center justify-between border-b border-border bg-card/80 px-4 md:px-8 backdrop-blur-md">
+    <header className="sticky top-0 z-30 flex h-20 w-full items-center justify-between border-b border-border bg-card/80 px-4 md:px-8 backdrop-blur-md">
       {/* Left: Official Shadcn SidebarTrigger & Title */}
       <div className="flex items-center gap-3">
-        <SidebarTrigger className="-ml-1" />
-        <Separator orientation="vertical" className="mr-2 h-4" />
 
         {title && (
           <div className="hidden sm:flex flex-col">
@@ -115,9 +114,12 @@ export function DashboardHeader({ title, description }: DashboardHeaderProps) {
         )}
       </div>
 
-      {/* Right: Role Badge, Notifications & Profile Dropdown */}
+      {/* Right: Role Badge, Theme Toggle, Notifications & Profile Dropdown */}
       <div className="flex items-center gap-3">
         {getRoleBadge(currentUser?.role)}
+
+        {/* Theme Toggle Mode */}
+        <ThemeToggle />
 
         <Button
           variant="ghost"

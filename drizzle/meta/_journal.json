@@ -50,6 +50,48 @@
       "when": 1795279585062,
       "tag": "0006_kind_kronos",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1795329206240,
+      "tag": "0007_mushy_kate_bishop",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1795330129679,
+      "tag": "0008_solid_blindfold",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1795331529944,
+      "tag": "0009_icy_tombstone",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1795333578960,
+      "tag": "0010_slow_quasimodo",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1795335692210,
+      "tag": "0011_quiet_lady_vermin",
+      "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1795339739046,
+      "tag": "0012_bumpy_yellowjacket",
+      "breakpoints": true
     }
   ]
 }

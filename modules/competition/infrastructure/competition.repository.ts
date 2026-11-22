@@ -54,3 +54,15 @@ export async function toggleCompetitionStatus(
     .returning();
   return result[0] || null;
 }
+
+export async function setActiveForm(
+  competitionId: string,
+  formId: string | null
+): Promise<CompetitionSelect | null> {
+  const result = await db
+    .update(competitionsTable)
+    .set({ activeFormId: formId, updatedAt: new Date() })
+    .where(eq(competitionsTable.id, competitionId))
+    .returning();
+  return result[0] || null;
+}

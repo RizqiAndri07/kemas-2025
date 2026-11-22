@@ -24,6 +24,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { loginAction } from "../../application/auth.actions";
+import { toast } from "@/components/ui/sonner";
 
 export function LoginForm() {
   const router = useRouter();
@@ -41,7 +42,9 @@ export function LoginForm() {
     setErrorMessage(null);
 
     if (!email.trim() || !password) {
-      setErrorMessage("Silakan lengkapi email dan kata sandi Anda.");
+      const msg = "Silakan lengkapi email dan kata sandi Anda.";
+      setErrorMessage(msg);
+      toast.error(msg);
       return;
     }
 
@@ -53,17 +56,21 @@ export function LoginForm() {
         });
 
         if (!result.success) {
-          setErrorMessage(result.error || "Gagal masuk. Periksa kembali email dan kata sandi Anda.");
+          const msg = result.error || "Gagal masuk. Periksa kembali email dan kata sandi Anda.";
+          setErrorMessage(msg);
+          toast.error(msg);
           return;
         }
 
+        toast.success("Berhasil masuk. Mengarahkan ke dashboard...");
         // Login berhasil, arahkan ke rute tujuan
         router.push(nextUrl);
         router.refresh();
       } catch (err) {
-        setErrorMessage(
-          err instanceof Error ? err.message : "Terjadi kesalahan internal saat mencoba login."
-        );
+        const msg =
+          err instanceof Error ? err.message : "Terjadi kesalahan internal saat mencoba login.";
+        setErrorMessage(msg);
+        toast.error(msg);
       }
     });
   };

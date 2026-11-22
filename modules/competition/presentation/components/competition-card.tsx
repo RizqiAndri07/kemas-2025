@@ -17,10 +17,14 @@ import {
   AlertTriangle,
   Sparkles,
   Tag,
+  FileText,
+  ExternalLink,
+  FileSpreadsheet,
 } from "lucide-react";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
+import { toast } from "@/components/ui/sonner";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -39,6 +43,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { CompetitionSelect } from "../../infrastructure/competition.table";
+import { EventDocumentSelect } from "../../infrastructure/event-document.table";
 import { CompetitionType } from "../../domain/competition-type.enum";
 import { CompetitionStatus } from "../../domain/competition-status.enum";
 import {
@@ -48,9 +53,10 @@ import {
 
 interface CompetitionCardProps {
   competition: CompetitionSelect;
+  documents?: EventDocumentSelect[];
 }
 
-export function CompetitionCard({ competition }: CompetitionCardProps) {
+export function CompetitionCard({ competition, documents = [] }: CompetitionCardProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [deleteOpen, setDeleteOpen] = useState(false);
@@ -81,14 +87,24 @@ export function CompetitionCard({ competition }: CompetitionCardProps) {
         : CompetitionStatus.OPEN;
 
     startTransition(async () => {
-      await toggleCompetitionStatusAction(competition.id, nextStatus);
+      const res = await toggleCompetitionStatusAction(competition.id, nextStatus);
+      if (res.success) {
+        toast.success(res.message || "Status kompetisi berhasil diperbarui!");
+      } else {
+        toast.error(res.error || "Gagal mengubah status kompetisi");
+      }
       router.refresh();
     });
   };
 
   const handleDelete = () => {
     startTransition(async () => {
-      await deleteCompetitionAction(competition.id);
+      const res = await deleteCompetitionAction(competition.id);
+      if (res.success) {
+        toast.success(res.message || "Kompetisi berhasil dihapus!");
+      } else {
+        toast.error(res.error || "Gagal menghapus kompetisi");
+      }
       setDeleteOpen(false);
       router.refresh();
     });
@@ -96,6 +112,17 @@ export function CompetitionCard({ competition }: CompetitionCardProps) {
 
   const isTournament = competition.type === CompetitionType.TOURNAMENT;
   const isOpen = competition.status === CompetitionStatus.OPEN;
+
+  // Temukan tier price list yang sedang aktif
+  const activeTier =
+    competition.priceList?.find((p) => p.id === competition.selectedPriceId) ||
+    competition.priceList?.[0] || {
+      id: "default",
+      name: "Normal Price",
+      price: competition.fee,
+    };
+
+  const hasMultipleTiers = (competition.priceList?.length || 0) > 1;
 
   return (
     <>
@@ -151,16 +178,14 @@ export function CompetitionCard({ competition }: CompetitionCardProps) {
                 </Badge>
               )}
 
-              {/* Presale Indicator Badge */}
-              {competition.hasPresale && (
-                <Badge
-                  variant="outline"
-                  className="border-amber-500/30 bg-amber-500/10 text-amber-600 dark:text-amber-400 font-medium text-[10px] px-2 py-0.5"
-                >
-                  <Tag className="mr-1 h-3 w-3" />
-                  Presale
-                </Badge>
-              )}
+              {/* Active Price Tier Badge */}
+              <Badge
+                variant="outline"
+                className="border-amber-500/30 bg-amber-500/10 text-amber-600 dark:text-amber-400 font-medium text-[10px] px-2 py-0.5"
+              >
+                <Tag className="mr-1 h-3 w-3" />
+                {activeTier.name}
+              </Badge>
             </div>
 
             {/* Action Menu */}
@@ -184,11 +209,11 @@ export function CompetitionCard({ competition }: CompetitionCardProps) {
                   Edit Rincian
                 </DropdownMenuItem>
                 <DropdownMenuItem
-                  render={<Link href="/dashboard/competition/presale" />}
+                  render={<Link href={`/dashboard/competition/${competition.id}/form`} />}
                   className="cursor-pointer"
                 >
-                  <Tag className="mr-2 h-3.5 w-3.5 text-amber-500" />
-                  Kelola Presale
+                  <FileSpreadsheet className="mr-2 h-3.5 w-3.5 text-primary" />
+                  Kelola Formulir
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={handleToggleStatus} className="cursor-pointer">
                   {isOpen ? (
@@ -203,6 +228,38 @@ export function CompetitionCard({ competition }: CompetitionCardProps) {
                     </>
                   )}
                 </DropdownMenuItem>
+                {documents.length > 0 ? (
+                  documents.map((doc) => (
+                    <DropdownMenuItem
+                      key={doc.id}
+                      render={
+                        <a
+                          href={doc.filePath}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        />
+                      }
+                      className="cursor-pointer"
+                    >
+                      <FileText className="mr-2 h-3.5 w-3.5 text-primary" />
+                      <span className="truncate">Unduh {doc.name}</span>
+                    </DropdownMenuItem>
+                  ))
+                ) : competition.guidebookUrl ? (
+                  <DropdownMenuItem
+                    render={
+                      <a
+                        href={competition.guidebookUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      />
+                    }
+                    className="cursor-pointer"
+                  >
+                    <FileText className="mr-2 h-3.5 w-3.5 text-primary" />
+                    Unduh Buku Panduan
+                  </DropdownMenuItem>
+                ) : null}
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
                   onClick={() => setDeleteOpen(true)}
@@ -225,6 +282,25 @@ export function CompetitionCard({ competition }: CompetitionCardProps) {
                 {competition.description}
               </p>
             )}
+
+            {/* Registration & Form Status Indicator */}
+            <div className="flex items-center gap-1.5 mt-2">
+              {competition.noRegistrationNeeded ? (
+                <span className="inline-flex items-center gap-1 text-[10px] font-medium px-2 py-0.5 rounded-full bg-slate-500/10 text-slate-600 dark:text-slate-400 border border-slate-500/20">
+                  Tanpa Pendaftaran
+                </span>
+              ) : competition.activeFormId ? (
+                <span className="inline-flex items-center gap-1 text-[10px] font-medium px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20">
+                  <CheckCircle2 className="h-2.5 w-2.5" />
+                  Formulir Terhubung
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-1 text-[10px] font-medium px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/20">
+                  <AlertTriangle className="h-2.5 w-2.5" />
+                  Formulir Belum Dipilih
+                </span>
+              )}
+            </div>
           </div>
         </CardHeader>
 
@@ -258,14 +334,16 @@ export function CompetitionCard({ competition }: CompetitionCardProps) {
             </div>
           </div>
 
-          {/* Fee & Quota Grid */}
+          {/* Price List & Quota Grid */}
           <div className="grid grid-cols-2 gap-2 text-xs">
             <div className="flex items-center gap-2 p-2 rounded-lg bg-card border border-border/60">
               <Coins className="h-3.5 w-3.5 text-primary shrink-0" />
               <div className="flex flex-col min-w-0">
-                <span className="text-[10px] text-muted-foreground">Biaya</span>
+                <span className="text-[10px] text-muted-foreground truncate font-medium">
+                  {activeTier.name}
+                </span>
                 <span className="font-bold text-foreground text-[11px] truncate">
-                  {formatCurrency(competition.fee)}
+                  {formatCurrency(activeTier.price)}
                 </span>
               </div>
             </div>
@@ -280,6 +358,52 @@ export function CompetitionCard({ competition }: CompetitionCardProps) {
               </div>
             </div>
           </div>
+
+          {/* Dokumen / Berkas Kegiatan (PDF) */}
+          {documents.length > 0 ? (
+            <div className="space-y-1.5 pt-1">
+              {documents.map((doc, idx) => (
+                <div
+                  key={doc.id || idx}
+                  className="flex items-center justify-between p-2 rounded-lg bg-primary/5 border border-primary/20 text-xs"
+                >
+                  <div className="flex items-center gap-1.5 min-w-0">
+                    <FileText className="h-3.5 w-3.5 text-primary shrink-0" />
+                    <span className="text-[11px] font-medium text-foreground truncate">
+                      {doc.name}
+                    </span>
+                  </div>
+                  <a
+                    href={doc.filePath}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 text-[11px] font-semibold text-primary hover:underline shrink-0"
+                  >
+                    <span>Lihat PDF</span>
+                    <ExternalLink className="h-3 w-3" />
+                  </a>
+                </div>
+              ))}
+            </div>
+          ) : competition.guidebookUrl ? (
+            <div className="flex items-center justify-between p-2 rounded-lg bg-primary/5 border border-primary/20 text-xs">
+              <div className="flex items-center gap-1.5 min-w-0">
+                <FileText className="h-3.5 w-3.5 text-primary shrink-0" />
+                <span className="text-[11px] font-medium text-foreground truncate">
+                  Buku Panduan (PDF)
+                </span>
+              </div>
+              <a
+                href={competition.guidebookUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 text-[11px] font-semibold text-primary hover:underline shrink-0"
+              >
+                <span>Lihat PDF</span>
+                <ExternalLink className="h-3 w-3" />
+              </a>
+            </div>
+          ) : null}
         </CardContent>
 
         <CardFooter className="p-3 pt-0 border-t border-border/40 flex items-center justify-between gap-2 mt-2">

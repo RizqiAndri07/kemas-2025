@@ -72,7 +72,7 @@ pnpm dlx shadcn@latest add {component}
 | Komponen Reusable | Primitives Shadcn UI | Peran & Penggunaan Berbasis Variabel |
 | :--- | :--- | :--- |
 | **`DashboardSidebar`** | `Sidebar`, `SidebarMenu`, `SidebarMenuButton` | Navigasi menu utama yang otomatis beradaptasi dengan `--sidebar` & `--sidebar-accent`. |
-| **`DashboardHeader`** | `DropdownMenu`, `Avatar`, `Button`, `Separator` | Header sticky dengan `bg-card/80` dan `border-border`, menu profil, role badge, dan trigger sidebar. |
+| **`DashboardHeader`** | `DropdownMenu`, `Avatar`, `Button`, `Separator`, `ThemeToggle` | Header sticky dengan `bg-card/80` dan `border-border`, menu profil, role badge, toggle dark/light mode instan, dan trigger sidebar. |
 | **`StatCard`** | `Card`, `CardHeader`, `CardTitle`, `CardContent` | Metrik ringkasan menggunakan `bg-card`, `text-foreground`, `bg-primary/10`, dan tren berbasis `text-primary` / `text-destructive`. |
 | **`StatusBadge`** | `Badge` | Pill status adaptif berbasis variabel: <br>- Aktif/Valid: `border-primary/20 bg-primary/10 text-primary` <br>- Nonaktif/Batal: `border-destructive/20 bg-destructive/10 text-destructive` |
 | **`PageHeader`** | Header Slot & Action Buttons | Judul halaman (`text-foreground`) dan deskripsi (`text-muted-foreground`) dengan garis pembatas `border-border`. |
@@ -138,3 +138,35 @@ Berikut adalah verifikasi seluruh komponen pada dashboard terhadap penggunaan va
 - [x] **`components/dashboard/StatusBadge.tsx`**: Menggunakan `border-primary/20 bg-primary/10 text-primary` dan `border-destructive/20 bg-destructive/10 text-destructive`.
 - [x] **`modules/blog/presentation/components/blog-form.tsx`**: Menggunakan `bg-background`, `border-border/60`, auto-expanding title `text-foreground`, banner alert `border-destructive/40 bg-destructive/10 text-destructive`.
 - [x] **`modules/blog/presentation/components/blocknote-editor.tsx`**: Kanvas transparan adaptif terhadap `--background` dan `--foreground`.
+
+---
+
+## 7. Standar Layout Formulir Dashboard (Full-Width First)
+
+### A. Larangan Centering & Margin/Padding Berlebih
+- **Dilarang keras membatasi lebar form secara sempit di tengah layar** dengan utility seperti `max-w-2xl`, `max-w-3xl`, `max-w-5xl`, `max-w-6xl` dikombinasikan dengan `mx-auto` pada formulir halaman (create & edit) di area dashboard.
+- Pola centering dengan margin/padding horizontal yang besar menghasilkan ruang kosong (*white space*) masif di sisi kiri dan kanan monitor desktop/laptop, yang menurunkan efisiensi area kerja admin.
+
+### B. Prinsip Full-Width & Pemanfaatan Ruang Optimal
+1. **Lebar Kontainer Penuh (`w-full`):**
+   - Kontainer formulir dan kartu input utama wajib menggunakan `w-full` agar membentang memenuhi ruang kerja yang disediakan oleh layout dashboard secara alami tanpa margin buatan di kiri/kanan.
+2. **Pemanfaatan CSS Grid Responsif:**
+   - Gunakan tata letak grid multi-kolom yang seimbang (misal: `grid-cols-1 md:grid-cols-2 lg:grid-cols-4`) untuk mengelompokkan input terkait (seperti field periode pendaftaran & tanggal acara, status, price list, dan kuota). Ini memastikan ruang horizontal terisi secara produktif, rapi, dan nyaman dibaca.
+3. **Editor Konten & Kanvas CMS (Blog):**
+   - Area kanvas editor teks panjang (seperti BlockNote / Notion-style) wajib membentang secara proporsional (`flex-1 w-full min-w-0`), didampingi panel samping metadata (seperti hashtags, visibilitas) di sisi kanan pada layar besar tanpa padding/margin sempit (`max-w-6xl mx-auto px-12`) yang membatasi kanvas tulis.
+
+---
+
+## 8. Standar Notifikasi Toast & Feedback Error Handling (Shadcn UI Sonner)
+
+Seluruh umpan balik interaktif hasil mutasi data, aksi server (Server Actions), dan penanganan galat (*error handling*) **WAJIB** disajikan melalui komponen **Toast Shadcn UI (`sonner`)**:
+
+1. **Posisi Standar Wajib:**
+   - Notifikasi toast **wajib selalu berada di sudut kanan bawah (`position="bottom-right"`)** agar tidak menghalangi navigasi header/sidebar dan konten kerja utama.
+2. **Variasi Notifikasi:**
+   - **Sukses:** `toast.success("Pesan berhasil")` dengan ikon hijau `CircleCheckIcon`.
+   - **Gagal / Error:** `toast.error("Pesan error")` dengan ikon merah `OctagonXIcon`.
+   - **Peringatan:** `toast.warning("Pesan peringatan")` dengan ikon kuning `TriangleAlertIcon`.
+   - **Informasi:** `toast.info("Pesan informasi")` dengan ikon biru `InfoIcon`.
+3. **Pemasangan Global:**
+   - Komponen `<Toaster position="bottom-right" richColors />` dipasang di layout root agar dapat dipicu secara universal dari client component mana pun.

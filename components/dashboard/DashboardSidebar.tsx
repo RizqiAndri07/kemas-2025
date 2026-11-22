@@ -16,6 +16,8 @@ import {
   Tag,
   Clock,
   LayoutGrid,
+  PhoneCall,
+  FileSpreadsheet,
 } from "lucide-react";
 import {
   Sidebar,
@@ -50,7 +52,7 @@ export function DashboardSidebar() {
   }, [isEventsActive]);
 
   return (
-    <Sidebar collapsible="icon" className="border-r border-border">
+    <Sidebar collapsible="icon" className="">
       {/* Brand Header */}
       <SidebarHeader className="py-4">
         <SidebarMenu>
@@ -72,7 +74,6 @@ export function DashboardSidebar() {
         </SidebarMenu>
       </SidebarHeader>
 
-      <SidebarSeparator />
 
       {/* Main Navigation Content */}
       <SidebarContent>
@@ -138,18 +139,18 @@ export function DashboardSidebar() {
                       </SidebarMenuSubButton>
                     </SidebarMenuSubItem>
 
-                    {/* Sub 2: Presale */}
+                    {/* Sub 2: Formulir Pendaftaran */}
                     <SidebarMenuSubItem>
                       <SidebarMenuSubButton
-                        isActive={pathname.startsWith("/dashboard/competition/presale")}
-                        render={<Link href="/dashboard/competition/presale" />}
+                        isActive={pathname.startsWith("/dashboard/competition/forms") || (pathname.startsWith("/dashboard/competition/") && (pathname.includes("/forms") || pathname.includes("/form")))}
+                        render={<Link href="/dashboard/competition/forms" />}
                       >
-                        <Tag className="h-3.5 w-3.5 mr-1" />
-                        <span>Presale</span>
+                        <FileSpreadsheet className="h-3.5 w-3.5 mr-1" />
+                        <span>Formulir Pendaftaran</span>
                       </SidebarMenuSubButton>
                     </SidebarMenuSubItem>
 
-                    {/* Sub 3: Bracket */}
+                    {/* Sub 2: Bracket */}
                     <SidebarMenuSubItem>
                       <SidebarMenuSubButton
                         isActive={pathname.startsWith("/dashboard/competition/bracket")}
@@ -160,7 +161,7 @@ export function DashboardSidebar() {
                       </SidebarMenuSubButton>
                     </SidebarMenuSubItem>
 
-                    {/* Sub 4: Rundown */}
+                    {/* Sub 3: Rundown */}
                     <SidebarMenuSubItem>
                       <SidebarMenuSubButton
                         isActive={pathname.startsWith("/dashboard/competition/rundown")}
@@ -170,19 +171,30 @@ export function DashboardSidebar() {
                         <span>Rundown</span>
                       </SidebarMenuSubButton>
                     </SidebarMenuSubItem>
+
+                    {/* Sub 4: Contact Person */}
+                    <SidebarMenuSubItem>
+                      <SidebarMenuSubButton
+                        isActive={pathname.startsWith("/dashboard/competition/contact-person")}
+                        render={<Link href="/dashboard/competition/contact-person" />}
+                      >
+                        <PhoneCall className="h-3.5 w-3.5 mr-1" />
+                        <span>Contact Person</span>
+                      </SidebarMenuSubButton>
+                    </SidebarMenuSubItem>
                   </SidebarMenuSub>
                 )}
               </SidebarMenuItem>
 
-              {/* 4. Pendaftar & Verifikasi */}
+              {/* 4. Data Pendaftar */}
               <SidebarMenuItem>
                 <SidebarMenuButton
                   isActive={pathname.startsWith("/dashboard/registrations")}
-                  tooltip="Pendaftar & Verifikasi"
+                  tooltip="Data Pendaftar"
                   render={<Link href="/dashboard/registrations" />}
                 >
                   <ShieldCheck className="h-4 w-4" />
-                  <span>Pendaftar & Verifikasi</span>
+                  <span>Data Pendaftar</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
 

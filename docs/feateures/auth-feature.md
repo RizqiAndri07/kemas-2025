@@ -14,10 +14,23 @@ Dokumen ini mendefinisikan rancangan teknis, arsitektur aliran data, hak akses (
    - Tidak ada rute `/register` atau form pendaftaran akun umum.
 3. **Pendaftaran Pengguna Hanya oleh Superadmin (*Add User via Superadmin*):**
    - Penambahan akun baru (Admin, CMS Writer, atau sesama Superadmin) **hanya dapat dilakukan oleh pengguna dengan peran `SUPERADMIN`** melalui dashboard `/dashboard/users`.
-   - Pembuatan akun memanfaatkan **Supabase Admin Auth API** (`supabase.auth.admin.createUser`) via `SUPABASE_SERVICE_ROLE_KEY` di server runtime.
-   - Akun yang dibuat oleh Superadmin otomatis berstatus terverifikasi (`email_confirm: true`) dengan password awal yang ditentukan oleh Superadmin.
-   - Data profil pengguna otomatis disinkronkan ke tabel PostgreSQL `users` (`usersTable`) menggunakan ID yang sama dengan `auth.users.id`.
-4. **Proteksi Rute Menyeluruh (*Route Protection Middleware*):**
+   - Superadmin cukup memasukkan `username`, `email`, dan `role` (tanpa perlu menginput password awal manual).
+   - Akun dibuat di database PostgreSQL `users` dengan status awal `unverified` dan akun dibuat di Supabase Auth (`email_confirm: false`).
+   - Sistem men-generate token verifikasi aman dengan **masa kedaluwarsa 12 jam** yang disimpan di tabel `auth_tokens`.
+   - Sistem mengirimkan email verifikasi ke alamat pengguna (via SMTP Mailpit untuk local dev dan SMTP provider untuk production).
+   - Pengguna mengklik tautan verifikasi pada email (`/auth/verify?token=...`).
+   - Setelah tautan diklik dan token tervalidasi (< 12 jam & belum pernah dipakai):
+     - Status pengguna di PostgreSQL menjadi `verified` dan di Supabase Auth menjadi `email_confirm: true`.
+     - Sistem otomatis men-generate password acak yang aman (*secure random password*) dan mengirimkan email konfirmasi akun aktif beserta informasi password acak tersebut.
+     - Sekaligus, pengguna langsung diarahkan ke halaman antarmuka pembaruan password (`/auth/setup-password?token=...`) agar pengguna dapat memasukkan password baru sesuai keinginannya sendiri secara mandiri.
+4. **Fitur Reset Password oleh Superadmin (*Superadmin Password Reset*):**
+   - Superadmin memiliki tombol "Reset Password" pada tabel manajemen pengguna.
+   - Sistem men-generate token reset password dengan masa berlaku **12 jam** dan mengirimkan email link reset password (`/auth/reset-password?token=...`) ke pengguna.
+   - Pengguna mengakses halaman tersebut dan menetapkan password baru.
+5. **Fitur Kirim Ulang Email (*Resend Verification Email*):**
+   - Superadmin memiliki tombol "Kirim Ulang Email" untuk pengguna berstatus `unverified` atau jika link sebelumnya telah kedaluwarsa (> 12 jam).
+   - Sistem membatalkan token lama dan menerbitkan token baru yang berlaku selama 12 jam ke depan.
+6. **Proteksi Rute Menyeluruh (*Route Protection Middleware*):**
    - Seluruh rute di bawah `/dashboard/*` diproteksi secara ketat menggunakan Next.js Middleware.
    - Pengguna tanpa sesi aktif akan dialihkan (*redirect*) ke halaman `/login`.
    - Pengguna yang sudah login akan dialihkan langsung ke `/dashboard` jika membuka halaman `/login`.
@@ -63,9 +76,10 @@ sequenceDiagram
     participant UI as Dialog Tambah Pengguna (/dashboard/users)
     participant Action as createUserAction (Server Action)
     participant SupabaseAdmin as Supabase Admin API (Service Role)
-    participant DB as PostgreSQL (usersTable)
+    participant DB as PostgreSQL (usersTable & authTokensTable)
+    participant Mailer as Email Service (Mailpit / SMTP)
 
-    SA->>UI: Isi Username, Email, Role, dan Password Awal
+    SA->>UI: Isi Username, Email, dan Role (tanpa password manual)
     UI->>Action: Submit Form Tambah Pengguna
     Action->>Action: Verifikasi sesi pemanggil (Wajib Role SUPERADMIN)
     Action->>Action: Validasi payload dengan createUserSchema (Zod)
@@ -74,15 +88,103 @@ sequenceDiagram
         DB-->>Action: Record ada
         Action-->>UI: Error "Username atau Email sudah terdaftar"
     else Tidak Ada Duplikasi
-        Action->>SupabaseAdmin: auth.admin.createUser({ email, password, email_confirm: true })
+        Action->>SupabaseAdmin: auth.admin.createUser({ email, password: randomTempPassword, email_confirm: false })
         SupabaseAdmin-->>Action: Auth User Created (auth.users.id)
-        Action->>DB: insert into usersTable (id, username, email, role, status='verified')
-        Action-->>UI: Berhasil membuat akun pengguna
+        Action->>DB: insert into usersTable (id, username, email, role, status='unverified')
+        Action->>DB: createToken({ userId, type: 'VERIFICATION', expiresAt: now() + 12 jam })
+        Action->>Mailer: sendVerificationEmail({ to: email, token, username })
+        Mailer-->>Action: Email Terkirim (ke Mailpit / SMTP)
+        Action-->>UI: Berhasil membuat akun pengguna & email verifikasi terkirim
         UI-->>SA: Tutup dialog, refresh daftar pengguna & notifikasi sukses
     end
 ```
 
-### C. Alur Keluar Akun (Logout Flow)
+### C. Alur Verifikasi Email & Set Password Baru oleh Pengguna
+```mermaid
+sequenceDiagram
+    autonumber
+    actor User as Pengguna Baru
+    participant Email as Inbox Pengguna (Mailpit / Email Client)
+    participant Web as Halaman Verifikasi (/auth/verify)
+    participant Action as verifyAndSetupAction (Server Action)
+    participant SupabaseAdmin as Supabase Admin API
+    participant DB as PostgreSQL (usersTable & authTokensTable)
+    participant Mailer as Email Service
+
+    User->>Email: Buka email & klik "Verifikasi Akun Saya"
+    Email->>Web: Navigasi ke /auth/verify?token={token}
+    Web->>Action: Verifikasi token
+    Action->>DB: findToken(token)
+    alt Token Tidak Ditemukan / Kedaluwarsa (> 12 Jam) / Sudah Digunakan
+        DB-->>Action: Invalid / Expired
+        Action-->>Web: Tampilkan pesan error "Link verifikasi telah kedaluwarsa atau tidak valid"
+    else Token Valid (< 12 Jam)
+        Action->>DB: markTokenUsed(token)
+        Action->>DB: updateUserStatus(userId, 'verified')
+        Action->>SupabaseAdmin: auth.admin.updateUserById(userId, { email_confirm: true, password: newRandomPassword })
+        Action->>Mailer: sendWelcomeWithRandomPasswordEmail({ to: email, randomPassword })
+        Action-->>Web: Redirect ke /auth/setup-password?token={sessionToken/oneTimeToken}
+        Web-->>User: Tampilkan formulir Update Kata Sandi Mandiri
+        User->>Web: Masukkan Kata Sandi Baru pilihan pengguna
+        Web->>Action: updatePasswordAction(newPassword)
+        Action->>SupabaseAdmin: auth.admin.updateUserById(userId, { password: newPassword })
+        Action-->>Web: Kata sandi berhasil diperbarui!
+        Web-->>User: Redirect ke /login dengan pesan sukses
+    end
+```
+
+### D. Alur Reset Password oleh Superadmin
+```mermaid
+sequenceDiagram
+    autonumber
+    actor SA as Superadmin
+    participant UI as Tabel Pengguna (/dashboard/users)
+    participant Action as sendResetPasswordAction (Server Action)
+    participant DB as PostgreSQL (authTokensTable)
+    participant Mailer as Email Service (Mailpit / SMTP)
+    actor User as Pengguna Target
+    participant ResetPage as Halaman Reset Password (/auth/reset-password)
+
+    SA->>UI: Klik aksi "Reset Password" pada dropdown baris user
+    UI->>Action: trigger sendResetPasswordAction(userId)
+    Action->>Action: Verifikasi sesi pemanggil (Wajib SUPERADMIN)
+    Action->>DB: createToken({ userId, type: 'PASSWORD_RESET', expiresAt: now() + 12 jam })
+    Action->>Mailer: sendResetPasswordEmail({ to: user.email, token })
+    Mailer-->>Action: Email terkirim
+    Action-->>UI: Sukses mengirimkan email reset password
+    UI-->>SA: Notifikasi sukses
+    User->>ResetPage: Klik link di email: /auth/reset-password?token={token}
+    ResetPage->>ResetPage: Validasi token (< 12 jam)
+    User->>ResetPage: Masukkan Kata Sandi Baru
+    ResetPage->>Action: submitNewPasswordAction({ token, newPassword })
+    Action->>SupabaseAdmin: auth.admin.updateUserById(userId, { password: newPassword })
+    Action->>DB: markTokenUsed(token)
+    Action-->>ResetPage: Password berhasil direset!
+    ResetPage-->>User: Redirect ke /login
+```
+
+### E. Alur Kirim Ulang Email Verifikasi oleh Superadmin (Resend Email)
+```mermaid
+sequenceDiagram
+    autonumber
+    actor SA as Superadmin
+    participant UI as Tabel Pengguna (/dashboard/users)
+    participant Action as resendVerificationEmailAction (Server Action)
+    participant DB as PostgreSQL (authTokensTable)
+    participant Mailer as Email Service (Mailpit / SMTP)
+
+    SA->>UI: Klik "Kirim Ulang Email" pada pengguna unverified
+    UI->>Action: trigger resendVerificationEmailAction(userId)
+    Action->>Action: Verifikasi hak akses SUPERADMIN
+    Action->>DB: invalidateOldTokens(userId, 'VERIFICATION')
+    Action->>DB: createToken({ userId, type: 'VERIFICATION', expiresAt: now() + 12 jam })
+    Action->>Mailer: sendVerificationEmail({ to: user.email, token, username })
+    Mailer-->>Action: Email terkirim
+    Action-->>UI: Notifikasi "Email verifikasi berhasil dikirim ulang!"
+    UI-->>SA: Toast sukses
+```
+
+### F. Alur Keluar Akun (Logout Flow)
 ```mermaid
 sequenceDiagram
     autonumber
@@ -120,21 +222,26 @@ modules/auth/
 ├── domain/
 │   ├── role.enum.ts              # Enum peran: SUPERADMIN, ADMIN, CMS_WRITER
 │   ├── user-status.enum.ts       # Enum status: verified, unverified
+│   ├── token-type.enum.ts        # Enum tipe token: VERIFICATION, PASSWORD_RESET
 │   ├── user.entity.ts            # Tipe entitas User dan SessionUser
-│   ├── auth.schema.ts            # Zod schema: loginSchema, createUserWithPasswordSchema
+│   ├── auth.schema.ts            # Zod schema: loginSchema, createUserSchema, updatePasswordSchema, resetPasswordSchema
 │   └── user.schema.ts            # Zod schema untuk profil dan form update
 ├── application/
-│   ├── auth.actions.ts           # Server Actions: loginAction, logoutAction, getCurrentUserAction
-│   └── user.actions.ts           # Server Actions: createUserAction, updateUserAction, deleteUserAction
+│   ├── auth.actions.ts           # Server Actions: loginAction, logoutAction, verifyTokenAction, updatePasswordAction
+│   └── user.actions.ts           # Server Actions: createUserAction, updateUserAction, deleteUserAction, resendEmailAction, triggerResetPasswordAction
 ├── infrastructure/
 │   ├── user.table.ts             # Skema Drizzle ORM PostgreSQL (`usersTable`)
+│   ├── auth-token.table.ts       # Skema Drizzle ORM PostgreSQL (`authTokensTable` dengan expires_at 12 jam)
 │   ├── user.repository.ts        # Query database PostgreSQL via Drizzle
-│   └── auth.service.ts           # Adapter Supabase Auth (Sign In, Sign Out, Admin API)
+│   ├── auth-token.repository.ts  # CRUD token verifikasi & reset password
+│   └── email.service.ts          # Layanan pengiriman email Nodemailer (Mailpit / SMTP)
 └── presentation/
     └── components/
         ├── login-form.tsx        # Form Login responsif dengan Shadcn UI
-        ├── user-dialog.tsx       # Dialog Tambah/Edit Pengguna (dengan field password)
-        └── user-table.tsx        # Tabel manajemen pengguna & aksi Superadmin
+        ├── user-dialog.tsx       # Dialog Tambah Pengguna (Username, Email, Role tanpa password)
+        ├── user-table.tsx        # Tabel pengguna dengan aksi Reset Password & Kirim Ulang Email
+        ├── verify-view.tsx       # Komponen verifikasi token & pesan status
+        └── setup-password-form.tsx # Form update password mandiri sesuai input user
 ```
 
 ---
@@ -158,9 +265,9 @@ export const loginSchema = z.object({
 export type LoginInput = z.infer<typeof loginSchema>;
 ```
 
-### B. Skema Tambah Pengguna Baru oleh Superadmin
+### B. Skema Tambah Pengguna Baru oleh Superadmin (Tanpa Password Manual)
 ```typescript
-export const createUserWithPasswordSchema = z.object({
+export const createUserSchema = z.object({
   username: z
     .string()
     .min(3, "Username minimal 3 karakter")
@@ -172,15 +279,32 @@ export const createUserWithPasswordSchema = z.object({
     .string()
     .min(1, "Email wajib diisi")
     .email("Format email tidak valid"),
-  password: z
-    .string()
-    .min(8, "Kata sandi awal minimal 8 karakter"),
   role: z.enum(["SUPERADMIN", "ADMIN", "CMS_WRITER"], {
     message: "Pilih peran pengguna yang valid",
   }),
 });
 
-export type CreateUserWithPasswordInput = z.infer<typeof createUserWithPasswordSchema>;
+export type CreateUserInput = z.infer<typeof createUserSchema>;
+```
+
+### C. Skema Setel / Update Kata Sandi oleh Pengguna (`updatePasswordSchema`)
+```typescript
+export const setupPasswordSchema = z
+  .object({
+    token: z.string().min(1, "Token verifikasi wajib disertakan"),
+    newPassword: z
+      .string()
+      .min(8, "Kata sandi minimal 8 karakter")
+      .regex(/[A-Z]/, "Kata sandi wajib memuat minimal 1 huruf besar")
+      .regex(/[0-9]/, "Kata sandi wajib memuat minimal 1 angka"),
+    confirmPassword: z.string().min(1, "Konfirmasi kata sandi wajib diisi"),
+  })
+  .refine((data) => data.newPassword === data.confirmPassword, {
+    message: "Konfirmasi kata sandi tidak cocok",
+    path: ["confirmPassword"],
+  });
+
+export type SetupPasswordInput = z.infer<typeof setupPasswordSchema>;
 ```
 
 ---
@@ -251,3 +375,8 @@ Karena fitur registrasi publik tidak tersedia, akun Superadmin pertama akan dise
 - [x] **Tahap 6: Implementasi Middleware Guard** (`middleware.ts` berbasis `@supabase/ssr` untuk proteksi `/dashboard/*`, redirect `/login`, dan legacy 410 URLs)
 - [x] **Tahap 7: Implementasi Halaman Login UI & Perbaruan User Dialog** (`app/(auth)/login/page.tsx`, `login-form.tsx`, `user-dialog.tsx` dengan password field, `DashboardHeader.tsx` profil dinamis & logout)
 - [x] **Tahap 8: Skrip Seeder Superadmin & Verifikasi Menyeluruh** (`pnpm db:seed-superadmin`, pengujian rate limiting 100% lulus, `next build` berhasil)
+- [x] **Tahap 9: Perencanaan Fitur Email Verification, Password Setup & Reset Password Superadmin** (Konfigurasi `.env.example`, Mailpit dev SMTP, skema `auth_tokens` 12 jam expiry, proposal disajikan untuk persetujuan pengguna)
+- [x] **Tahap 10: Implementasi Skema Tabel `auth_tokens` & Migrasi PostgreSQL** (`auth-token.table.ts`, `auth_token_type` enum, DDL applied & verified)
+- [x] **Tahap 11: Implementasi Modul Email Service (`email.service.ts` + Nodemailer + Mailpit)** (Template responsif untuk Verifikasi Akun, Password Acak, dan Reset Password)
+- [x] **Tahap 12: Implementasi Server Actions & Alur Verifikasi (12 Jam Expiration, Auto-generate Password, Resend, Reset)** (`user.actions.ts`, `auth.actions.ts`, `auth-token.repository.ts`, pengujian alur 100% lulus)
+- [x] **Tahap 13: Pembaruan Antarmuka UI (User Dialog tanpa password, User Table aksi Reset & Resend, Halaman `/auth/verify`, `/auth/setup-password`, `/auth/reset-password`)** (`next build` 100% sukses)

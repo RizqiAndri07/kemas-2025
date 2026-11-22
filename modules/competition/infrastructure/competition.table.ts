@@ -1,4 +1,4 @@
-import { pgTable, uuid, varchar, text, integer, timestamp, pgEnum, boolean } from "drizzle-orm/pg-core";
+import { pgTable, uuid, varchar, text, integer, timestamp, pgEnum, jsonb, boolean } from "drizzle-orm/pg-core";
 
 export const competitionTypeEnum = pgEnum("competition_type", [
   "EVENT",
@@ -12,6 +12,12 @@ export const competitionStatusEnum = pgEnum("competition_status", [
   "COMPLETED",
 ]);
 
+export interface PriceListItem {
+  id: string;
+  name: string;
+  price: number;
+}
+
 export const competitionsTable = pgTable("competitions", {
   id: uuid("id").defaultRandom().primaryKey(),
   name: varchar("name", { length: 200 }).notNull(),
@@ -21,10 +27,19 @@ export const competitionsTable = pgTable("competitions", {
   eventStartDate: timestamp("event_start_date", { withTimezone: true }).notNull(),
   eventEndDate: timestamp("event_end_date", { withTimezone: true }).notNull(),
   fee: integer("fee").default(0).notNull(), // 0 = Free Entry
+  priceList: jsonb("price_list")
+    .$type<PriceListItem[]>()
+    .default([{ id: "default", name: "Normal Price", price: 0 }])
+    .notNull(),
+  selectedPriceId: varchar("selected_price_id", { length: 50 })
+    .default("default")
+    .notNull(),
+  guidebookUrl: text("guidebook_url"),
   description: text("description"),
   maxQuota: integer("max_quota"),
   status: competitionStatusEnum("status").default("OPEN").notNull(),
-  hasPresale: boolean("has_presale").default(false).notNull(),
+  noRegistrationNeeded: boolean("no_registration_needed").default(false).notNull(),
+  activeFormId: uuid("active_form_id"),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true })
     .defaultNow()

@@ -16,6 +16,9 @@ import {
   Clock,
   Calendar,
   AlertTriangle,
+  KeyRound,
+  Send,
+  MailCheck,
 } from "lucide-react";
 import {
   Table,
@@ -65,7 +68,10 @@ import { UserDialog } from "./user-dialog";
 import {
   deleteUserAction,
   toggleUserStatusAction,
+  resendVerificationEmailAction,
+  triggerResetPasswordAction,
 } from "../../application/user.actions";
+import { toast } from "@/components/ui/sonner";
 
 interface UserTableProps {
   users: UserSelect[];
@@ -85,8 +91,10 @@ export function UserTable({ users }: UserTableProps) {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [userToEdit, setUserToEdit] = useState<UserSelect | null>(null);
 
-  // Delete Confirmation State
+  // Target Actions State
   const [deleteTarget, setDeleteTarget] = useState<UserSelect | null>(null);
+  const [resetTarget, setResetTarget] = useState<UserSelect | null>(null);
+  const [resendTarget, setResendTarget] = useState<UserSelect | null>(null);
 
   // Sorting State
   const [sortColumn, setSortColumn] = useState<UserSortColumn>("createdAt");
@@ -123,7 +131,12 @@ export function UserTable({ users }: UserTableProps) {
         : UserStatus.VERIFIED;
 
     startTransition(async () => {
-      await toggleUserStatusAction(user.id, nextStatus);
+      const res = await toggleUserStatusAction(user.id, nextStatus);
+      if (res.success) {
+        toast.success(res.message || "Status pengguna berhasil diperbarui!");
+      } else {
+        toast.error(res.error || "Gagal memperbarui status pengguna.");
+      }
       router.refresh();
     });
   };
@@ -132,9 +145,48 @@ export function UserTable({ users }: UserTableProps) {
     if (!deleteTarget) return;
 
     startTransition(async () => {
-      await deleteUserAction(deleteTarget.id);
+      const res = await deleteUserAction(deleteTarget.id);
+      if (res.success) {
+        toast.success(res.message || "Pengguna berhasil dihapus.");
+      } else {
+        toast.error(res.error || "Gagal menghapus pengguna.");
+      }
       setDeleteTarget(null);
       router.refresh();
+    });
+  };
+
+  const handleConfirmResetPassword = () => {
+    if (!resetTarget) return;
+
+    startTransition(async () => {
+      const res = await triggerResetPasswordAction(resetTarget.id);
+      if (res.success) {
+        toast.success(
+          res.message ||
+            `Tautan reset kata sandi berhasil dikirim ke ${resetTarget.email} (berlaku 12 jam).`
+        );
+      } else {
+        toast.error(res.error || "Gagal memproses reset kata sandi.");
+      }
+      setResetTarget(null);
+    });
+  };
+
+  const handleConfirmResendVerification = () => {
+    if (!resendTarget) return;
+
+    startTransition(async () => {
+      const res = await resendVerificationEmailAction(resendTarget.id);
+      if (res.success) {
+        toast.success(
+          res.message ||
+            `Email verifikasi berhasil dikirim ulang ke ${resendTarget.email} (berlaku 12 jam).`
+        );
+      } else {
+        toast.error(res.error || "Gagal mengirim ulang email verifikasi.");
+      }
+      setResendTarget(null);
     });
   };
 
@@ -522,14 +574,33 @@ export function UserTable({ users }: UserTableProps) {
                             >
                               <MoreVertical className="h-4 w-4" />
                             </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end" className="w-48">
+                            <DropdownMenuContent align="end" className="w-56">
                               <DropdownMenuItem
                                 onClick={() => handleOpenEdit(user)}
                                 className="cursor-pointer"
                               >
-                                <Pencil className="mr-2 h-4 w-4" />
+                                <Pencil className="mr-2 h-4 w-4 text-muted-foreground" />
                                 Edit Pengguna
                               </DropdownMenuItem>
+
+                              {/* Kirim Ulang Email Verifikasi */}
+                              <DropdownMenuItem
+                                onClick={() => setResendTarget(user)}
+                                className="cursor-pointer"
+                              >
+                                <Send className="mr-2 h-4 w-4 text-sky-500" />
+                                <span>Kirim Ulang Email Verifikasi</span>
+                              </DropdownMenuItem>
+
+                              {/* Reset Kata Sandi */}
+                              <DropdownMenuItem
+                                onClick={() => setResetTarget(user)}
+                                className="cursor-pointer"
+                              >
+                                <KeyRound className="mr-2 h-4 w-4 text-amber-500" />
+                                <span>Reset Kata Sandi</span>
+                              </DropdownMenuItem>
+
                               <DropdownMenuItem
                                 onClick={() => handleToggleStatus(user)}
                                 className="cursor-pointer"
@@ -542,10 +613,11 @@ export function UserTable({ users }: UserTableProps) {
                                 ) : (
                                   <>
                                     <CheckCircle2 className="mr-2 h-4 w-4 text-primary" />
-                                    <span>Verifikasi Akun</span>
+                                    <span>Tandai Verified</span>
                                   </>
                                 )}
                               </DropdownMenuItem>
+
                               <DropdownMenuSeparator />
                               <DropdownMenuItem
                                 onClick={() => setDeleteTarget(user)}
@@ -614,6 +686,80 @@ export function UserTable({ users }: UserTableProps) {
               disabled={isPending}
             >
               {isPending ? "Menghapus..." : "Ya, Hapus Pengguna"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Shadcn Alert Dialog for Reset Password */}
+      <AlertDialog
+        open={Boolean(resetTarget)}
+        onOpenChange={(open) => {
+          if (!open) setResetTarget(null);
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2 text-amber-600 dark:text-amber-400">
+              <KeyRound className="h-5 w-5" />
+              Reset Kata Sandi Pengguna?
+            </AlertDialogTitle>
+            <AlertDialogDescription className="space-y-2">
+              <p>
+                Sistem akan membuat tautan reset kata sandi baru dan mengirimkannya melalui email ke:
+              </p>
+              <div className="p-2 rounded bg-muted text-xs font-mono text-foreground font-semibold">
+                {resetTarget?.email} (@{resetTarget?.username})
+              </div>
+              <p className="text-xs text-muted-foreground">
+                ⏰ Tautan tersebut akan aktif dan berlaku selama <strong>12 jam</strong>.
+              </p>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isPending}>Batal</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleConfirmResetPassword}
+              disabled={isPending}
+            >
+              {isPending ? "Mengirim..." : "Kirim Email Reset"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Shadcn Alert Dialog for Resend Verification */}
+      <AlertDialog
+        open={Boolean(resendTarget)}
+        onOpenChange={(open) => {
+          if (!open) setResendTarget(null);
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2 text-sky-600 dark:text-sky-400">
+              <Send className="h-5 w-5" />
+              Kirim Ulang Email Verifikasi?
+            </AlertDialogTitle>
+            <AlertDialogDescription className="space-y-2">
+              <p>
+                Tautan verifikasi lama akan dinonaktifkan, dan tautan verifikasi baru akan dikirimkan ke:
+              </p>
+              <div className="p-2 rounded bg-muted text-xs font-mono text-foreground font-semibold">
+                {resendTarget?.email} (@{resendTarget?.username})
+              </div>
+              <p className="text-xs text-muted-foreground">
+                ⏰ Tautan verifikasi baru berlaku selama <strong>12 jam</strong> ke depan.
+              </p>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isPending}>Batal</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleConfirmResendVerification}
+              disabled={isPending}
+            >
+              {isPending ? "Mengirim..." : "Kirim Ulang Email"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
