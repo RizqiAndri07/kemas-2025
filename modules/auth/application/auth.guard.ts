@@ -1,46 +1,45 @@
-import { createClient } from "@/lib/supabase/server";
-import { getUserByEmail, getUserById } from "../infrastructure/user.repository";
+import { apiClient } from "@/lib/api-client";
 import { UserRole } from "../domain/role.enum";
 import { UserSelect } from "../infrastructure/user.table";
-import { User as AuthUser } from "@supabase/supabase-js";
 
 export interface AuthenticatedUserContext {
-  authUser: AuthUser;
+  authUser: {
+    id: string;
+    email: string;
+    username: string;
+    role: string;
+  };
   dbUser: UserSelect | null;
 }
 
-/**
- * Memverifikasi apakah request berasal dari pengguna yang memiliki sesi aktif.
- * Mengembalikan objek AuthUser Supabase dan entitas UserSelect dari PostgreSQL.
- * Melempar error jika sesi tidak ditemukan atau tidak valid.
- */
 export async function requireAuthUser(): Promise<AuthenticatedUserContext> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-    error,
-  } = await supabase.auth.getUser();
+  const res = await apiClient<{
+    id: string;
+    email: string;
+    username: string;
+    role: string;
+    status: string;
+  }>("auth/me");
 
-  if (error || !user) {
+  if (!res.success || !res.data) {
     throw new Error("Akses ditolak: Anda harus login untuk melakukan tindakan ini.");
   }
 
-  // Cari data profil pengguna di database PostgreSQL
-  let dbUser: UserSelect | null = null;
-  if (user.id) {
-    dbUser = await getUserById(user.id);
-  }
-  if (!dbUser && user.email) {
-    dbUser = await getUserByEmail(user.email);
-  }
+  const user = res.data;
+  const dbUser = {
+    id: user.id,
+    email: user.email,
+    username: user.username,
+    role: user.role as any,
+    status: user.status as any,
+    lastLogin: null,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  } as UserSelect;
 
   return { authUser: user, dbUser };
 }
 
-/**
- * Memverifikasi apakah pengguna yang sedang login memiliki peran SUPERADMIN.
- * Melempar error jika pengguna bukan SUPERADMIN.
- */
 export async function requireSuperadmin(): Promise<AuthenticatedUserContext> {
   const context = await requireAuthUser();
 

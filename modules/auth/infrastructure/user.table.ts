@@ -1,29 +1,24 @@
-import { pgTable, uuid, varchar, timestamp, pgEnum } from "drizzle-orm/pg-core";
+import { UserRole } from "../domain/role.enum";
+import { UserStatus } from "../domain/user-status.enum";
 
-export const userRoleEnum = pgEnum("user_role", [
-  "SUPERADMIN",
-  "ADMIN",
-  "CMS_WRITER",
-]);
+export interface UserSelect {
+  id: string;
+  username: string;
+  email: string;
+  role: UserRole;
+  status: UserStatus;
+  lastLogin: Date | null;
+  createdAt: Date;
+  updatedAt: Date;
+}
 
-export const userStatusEnum = pgEnum("user_status", [
-  "verified",
-  "unverified",
-]);
-
-export const usersTable = pgTable("users", {
-  id: uuid("id").defaultRandom().primaryKey(),
-  username: varchar("username", { length: 50 }).notNull().unique(),
-  email: varchar("email", { length: 255 }).notNull().unique(),
-  role: userRoleEnum("role").default("ADMIN").notNull(),
-  status: userStatusEnum("status").default("unverified").notNull(),
-  lastLogin: timestamp("last_login", { withTimezone: true }),
-  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
-  updatedAt: timestamp("updated_at", { withTimezone: true })
-    .defaultNow()
-    .$onUpdate(() => new Date())
-    .notNull(),
-});
-
-export type UserSelect = typeof usersTable.$inferSelect;
-export type UserInsert = typeof usersTable.$inferInsert;
+export interface UserInsert {
+  id?: string;
+  username: string;
+  email: string;
+  role?: UserRole;
+  status?: UserStatus;
+  lastLogin?: Date | null;
+  createdAt?: Date;
+  updatedAt?: Date;
+}

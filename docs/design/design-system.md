@@ -162,11 +162,11 @@ Berikut adalah verifikasi seluruh komponen pada dashboard terhadap penggunaan va
 Seluruh umpan balik interaktif hasil mutasi data, aksi server (Server Actions), dan penanganan galat (*error handling*) **WAJIB** disajikan melalui komponen **Toast Shadcn UI (`sonner`)**:
 
 1. **Posisi Standar Wajib:**
-   - Notifikasi toast **wajib selalu berada di sudut kanan bawah (`position="bottom-right"`)** agar tidak menghalangi navigasi header/sidebar dan konten kerja utama.
+   - Notifikasi toast berada di sudut kanan atas (`position="top-right"`) dengan styling menyerupai Card (padding, border, warna latar `bg-card` tanpa `richColors`).
 2. **Variasi Notifikasi:**
    - **Sukses:** `toast.success("Pesan berhasil")` dengan ikon hijau `CircleCheckIcon`.
    - **Gagal / Error:** `toast.error("Pesan error")` dengan ikon merah `OctagonXIcon`.
    - **Peringatan:** `toast.warning("Pesan peringatan")` dengan ikon kuning `TriangleAlertIcon`.
    - **Informasi:** `toast.info("Pesan informasi")` dengan ikon biru `InfoIcon`.
 3. **Pemasangan Global:**
-   - Komponen `<Toaster position="bottom-right" richColors />` dipasang di layout root agar dapat dipicu secara universal dari client component mana pun.
+   - Komponen `<Toaster position="top-right" />` dipasang di layout root agar dapat dipicu secara universal dari client component mana pun.

@@ -31,7 +31,7 @@ export default function AuthLayout({
           disableTransitionOnChange
         >
           {children}
-          <Toaster position="bottom-right" richColors />
+          <Toaster position="top-right" />
         </ThemeProvider>
       </body>
     </html>

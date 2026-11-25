@@ -65,7 +65,7 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <main className="min-h-screen scroll-smooth">{children}</main>
-          <Toaster position="bottom-right" richColors />
+          <Toaster position="top-right" />
         </ThemeProvider>
       </body>
     </html>

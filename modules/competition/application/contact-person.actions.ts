@@ -1,27 +1,28 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { contactPersonFormSchema, ContactPersonFormInput } from "../domain/contact-person.schema";
-import * as contactPersonRepo from "../infrastructure/contact-person.repository";
+import { apiClient } from "@/lib/api-client";
+import {
+  contactPersonFormSchema,
+  ContactPersonFormInput,
+} from "../domain/contact-person.schema";
 import { ContactPersonSelect } from "../infrastructure/contact-person.table";
 import { ActionResult } from "@/modules/shared/domain/common.types";
-import { requireAuthUser } from "@/modules/auth/application/auth.guard";
 
 export async function getAllContactPersonsAction(): Promise<
-  ActionResult<contactPersonRepo.ContactPersonWithCompetitions[]>
+  ActionResult<ContactPersonSelect[]>
 > {
   try {
-    await requireAuthUser();
-    const data = await contactPersonRepo.getAllContactPersons();
+    const res = await apiClient<ContactPersonSelect[]>("competitions/contact-persons");
     return {
       success: true,
-      data,
+      data: res.data || [],
     };
   } catch (error) {
     console.error("Error fetching contact persons:", error);
     return {
       success: false,
-      error: error instanceof Error ? error.message : "Gagal memuat data contact person",
+      error: error instanceof Error ? error.message : "Gagal memuat contact persons",
     };
   }
 }
@@ -30,38 +31,33 @@ export async function createContactPersonAction(
   payload: ContactPersonFormInput
 ): Promise<ActionResult<ContactPersonSelect>> {
   try {
-    await requireAuthUser();
-
     const validated = contactPersonFormSchema.safeParse(payload);
     if (!validated.success) {
       return {
         success: false,
-        error: validated.error.issues[0]?.message || "Validasi data gagal",
+        error: validated.error.issues[0]?.message || "Validasi gagal",
       };
     }
 
-    const { name, phone } = validated.data;
-
-    // Bersihkan format nomor HP (hilangkan spasi atau tanda hubung)
-    const cleanPhone = phone.trim().replace(/[\s\-]/g, "");
-
-    const newCp = await contactPersonRepo.createContactPerson({
-      name: name.trim(),
-      phone: cleanPhone,
+    const res = await apiClient<ContactPersonSelect>("competitions/contact-persons", {
+      method: "POST",
+      body: JSON.stringify(validated.data),
     });
 
-    try {
-      revalidatePath("/dashboard/competition/contact-person");
-      revalidatePath("/dashboard/competition/create");
-      revalidatePath("/dashboard/competition");
-    } catch {
-      // Abaikan jika di luar request context
+    if (!res.success || !res.data) {
+      return {
+        success: false,
+        error: res.error || "Gagal menambahkan contact person",
+      };
     }
+
+    revalidatePath("/dashboard/competition/contact-person");
+    revalidatePath("/dashboard/competition");
 
     return {
       success: true,
-      data: newCp,
-      message: `Contact person "${newCp.name}" berhasil ditambahkan!`,
+      message: res.message || "Contact person berhasil ditambahkan!",
+      data: res.data,
     };
   } catch (error) {
     console.error("Error creating contact person:", error);
@@ -77,42 +73,33 @@ export async function updateContactPersonAction(
   payload: ContactPersonFormInput
 ): Promise<ActionResult<ContactPersonSelect>> {
   try {
-    await requireAuthUser();
-
     const validated = contactPersonFormSchema.safeParse(payload);
     if (!validated.success) {
       return {
         success: false,
-        error: validated.error.issues[0]?.message || "Validasi data gagal",
+        error: validated.error.issues[0]?.message || "Validasi gagal",
       };
     }
 
-    const { name, phone } = validated.data;
-    const cleanPhone = phone.trim().replace(/[\s\-]/g, "");
-
-    const updated = await contactPersonRepo.updateContactPerson(id, {
-      name: name.trim(),
-      phone: cleanPhone,
+    const res = await apiClient<ContactPersonSelect>(`competitions/contact-persons/${id}`, {
+      method: "PUT",
+      body: JSON.stringify(validated.data),
     });
 
-    if (!updated) {
+    if (!res.success || !res.data) {
       return {
         success: false,
-        error: "Data contact person tidak ditemukan",
+        error: res.error || "Gagal memperbarui contact person",
       };
     }
 
-    try {
-      revalidatePath("/dashboard/competition/contact-person");
-      revalidatePath("/dashboard/competition");
-    } catch {
-      // Abaikan jika di luar request context
-    }
+    revalidatePath("/dashboard/competition/contact-person");
+    revalidatePath("/dashboard/competition");
 
     return {
       success: true,
-      data: updated,
-      message: `Contact person "${updated.name}" berhasil diperbarui!`,
+      message: res.message || "Contact person berhasil diperbarui!",
+      data: res.data,
     };
   } catch (error) {
     console.error("Error updating contact person:", error);
@@ -125,26 +112,24 @@ export async function updateContactPersonAction(
 
 export async function deleteContactPersonAction(id: string): Promise<ActionResult<void>> {
   try {
-    await requireAuthUser();
+    const res = await apiClient(`competitions/contact-persons/${id}`, {
+      method: "DELETE",
+    });
 
-    const deleted = await contactPersonRepo.deleteContactPerson(id);
-    if (!deleted) {
+    if (!res.success) {
       return {
         success: false,
-        error: "Contact person gagal dihapus atau tidak ditemukan",
+        error: res.error || "Gagal menghapus contact person",
       };
     }
 
-    try {
-      revalidatePath("/dashboard/competition/contact-person");
-      revalidatePath("/dashboard/competition");
-    } catch {
-      // Abaikan jika di luar request context
-    }
+    revalidatePath("/dashboard/competition/contact-person");
+    revalidatePath("/dashboard/competition");
 
     return {
       success: true,
-      message: "Contact person berhasil dihapus!",
+      data: undefined,
+      message: res.message || "Contact person berhasil dihapus!",
     };
   } catch (error) {
     console.error("Error deleting contact person:", error);

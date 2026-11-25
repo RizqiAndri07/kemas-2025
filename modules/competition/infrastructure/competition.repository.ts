@@ -1,68 +1,61 @@
-import { db } from "@/db";
-import { competitionsTable, CompetitionSelect, CompetitionInsert } from "./competition.table";
-import { desc, eq } from "drizzle-orm";
+import { apiClient } from "@/lib/api-client";
+import { CompetitionSelect, CompetitionInsert } from "./competition.table";
 import { CompetitionStatus } from "../domain/competition-status.enum";
 
 export async function getAllCompetitions(): Promise<CompetitionSelect[]> {
-  return await db
-    .select()
-    .from(competitionsTable)
-    .orderBy(desc(competitionsTable.createdAt));
+  const res = await apiClient<CompetitionSelect[]>("competitions");
+  return res.data || [];
 }
 
 export async function getCompetitionById(id: string): Promise<CompetitionSelect | null> {
-  const result = await db
-    .select()
-    .from(competitionsTable)
-    .where(eq(competitionsTable.id, id));
-  return result[0] || null;
+  const res = await apiClient<CompetitionSelect>(`competitions/${id}`);
+  return res.data || null;
 }
 
 export async function createCompetition(data: CompetitionInsert): Promise<CompetitionSelect> {
-  const result = await db.insert(competitionsTable).values(data).returning();
-  return result[0];
+  const res = await apiClient<CompetitionSelect>("competitions", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+  return res.data!;
 }
 
 export async function updateCompetition(
   id: string,
   data: Partial<CompetitionInsert>
 ): Promise<CompetitionSelect | null> {
-  const result = await db
-    .update(competitionsTable)
-    .set({ ...data, updatedAt: new Date() })
-    .where(eq(competitionsTable.id, id))
-    .returning();
-  return result[0] || null;
+  const res = await apiClient<CompetitionSelect>(`competitions/${id}`, {
+    method: "PUT",
+    body: JSON.stringify(data),
+  });
+  return res.data || null;
 }
 
 export async function deleteCompetition(id: string): Promise<boolean> {
-  const result = await db
-    .delete(competitionsTable)
-    .where(eq(competitionsTable.id, id))
-    .returning();
-  return result.length > 0;
+  const res = await apiClient(`competitions/${id}`, {
+    method: "DELETE",
+  });
+  return res.success;
 }
 
 export async function toggleCompetitionStatus(
   id: string,
   newStatus: CompetitionStatus
 ): Promise<CompetitionSelect | null> {
-  const result = await db
-    .update(competitionsTable)
-    .set({ status: newStatus, updatedAt: new Date() })
-    .where(eq(competitionsTable.id, id))
-    .returning();
-  return result[0] || null;
+  const res = await apiClient<CompetitionSelect>(`competitions/${id}/status`, {
+    method: "PATCH",
+    body: JSON.stringify({ status: newStatus }),
+  });
+  return res.data || null;
 }
 
 export async function setActiveForm(
   competitionId: string,
   formId: string | null
 ): Promise<CompetitionSelect | null> {
-  const result = await db
-    .update(competitionsTable)
-    .set({ activeFormId: formId, updatedAt: new Date() })
-    .where(eq(competitionsTable.id, competitionId))
-    .returning();
-  return result[0] || null;
+  if (!formId) return null;
+  const res = await apiClient<CompetitionSelect>(`competitions/${competitionId}/forms/${formId}/activate`, {
+    method: "PATCH",
+  });
+  return res.data || null;
 }

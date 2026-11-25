@@ -43,7 +43,7 @@ export default function DashboardRootLayout({
               </main>
             </SidebarInset>
           </SidebarProvider>
-          <Toaster position="top-center" />
+          <Toaster position="top-right" />
         </ThemeProvider>
       </body>
     </html>

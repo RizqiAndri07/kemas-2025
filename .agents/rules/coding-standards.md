@@ -124,5 +124,5 @@ Seluruh umpan balik aksi pengguna (*mutasi data, login, create, update, delete, 
 3. **Aturan Integrasi:**
    - Jangan menampilkan alert statis yang mengganggu alur UI jika notifikasi toast sudah cukup mewakili informasi status.
    - Pada aksi asinkron berat, disarankan menggunakan `toast.loading()` atau `toast.promise()` jika diperlukan.
-   - Pemasangan `<Toaster position="bottom-right" richColors />` berada di root layout.
+   - Pemasangan `<Toaster position="top-right" />` berada di root layout dengan styling menyerupai Card (border, padding, warna kartu tanpa richColors).
 

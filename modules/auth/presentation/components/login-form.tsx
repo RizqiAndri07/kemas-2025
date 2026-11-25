@@ -30,6 +30,7 @@ export function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const nextUrl = searchParams.get("next") || "/dashboard";
+  const isExpired = searchParams.get("expired") === "1";
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -94,6 +95,15 @@ export function LoginForm() {
       </CardHeader>
 
       <CardContent>
+        {isExpired && (
+          <div className="mb-4 flex items-start gap-2.5 rounded-lg border border-amber-500/30 bg-amber-500/10 p-3 text-xs text-amber-700 dark:text-amber-400 animate-in fade-in-50">
+            <AlertCircle className="h-4 w-4 shrink-0 mt-0.5 text-amber-600 dark:text-amber-400" />
+            <div className="leading-relaxed font-medium">
+              Sesi Anda telah berakhir karena telah melewati batas waktu 12 jam. Silakan masukkan kredensial untuk masuk kembali.
+            </div>
+          </div>
+        )}
+
         {errorMessage && (
           <div className="mb-4 flex items-start gap-2.5 rounded-lg border border-destructive/20 bg-destructive/10 p-3 text-xs text-destructive animate-in fade-in-50">
             <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />

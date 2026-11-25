@@ -1,84 +1,79 @@
-import { db } from "@/db";
-import {
-  blogsTable,
-  BlogInsert,
-  BlogSelect,
-  commentsTable,
-  CommentInsert,
-  CommentSelect,
-} from "./blog.table";
-import { desc, eq } from "drizzle-orm";
+import { apiClient } from "@/lib/api-client";
+import { BlogInsert, BlogSelect, CommentInsert, CommentSelect } from "./blog.table";
 
 export async function getAllBlogs(): Promise<BlogSelect[]> {
-  return await db.select().from(blogsTable).orderBy(desc(blogsTable.createdAt));
+  const res = await apiClient<BlogSelect[]>("blogs");
+  return res.data || [];
 }
 
 export async function getBlogById(id: string): Promise<BlogSelect | null> {
-  const result = await db.select().from(blogsTable).where(eq(blogsTable.id, id));
-  return result[0] || null;
+  const res = await apiClient<BlogSelect>(`blogs/${id}`);
+  return res.data || null;
 }
 
 export async function createBlog(data: BlogInsert): Promise<BlogSelect> {
-  const result = await db.insert(blogsTable).values(data).returning();
-  return result[0];
+  const res = await apiClient<BlogSelect>("blogs", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+  return res.data!;
 }
 
 export async function updateBlog(id: string, data: Partial<BlogInsert>): Promise<BlogSelect | null> {
-  const result = await db
-    .update(blogsTable)
-    .set({ ...data, updatedAt: new Date() })
-    .where(eq(blogsTable.id, id))
-    .returning();
-  return result[0] || null;
+  const res = await apiClient<BlogSelect>(`blogs/${id}`, {
+    method: "PUT",
+    body: JSON.stringify(data),
+  });
+  return res.data || null;
 }
 
 export async function deleteBlog(id: string): Promise<boolean> {
-  const result = await db.delete(blogsTable).where(eq(blogsTable.id, id)).returning();
-  return result.length > 0;
+  const res = await apiClient(`blogs/${id}`, {
+    method: "DELETE",
+  });
+  return res.success;
 }
 
 export async function toggleCommentStatus(id: string, newStatus: boolean): Promise<BlogSelect | null> {
-  const result = await db
-    .update(blogsTable)
-    .set({ commentStatus: newStatus, updatedAt: new Date() })
-    .where(eq(blogsTable.id, id))
-    .returning();
-  return result[0] || null;
+  const res = await apiClient<BlogSelect>(`blogs/${id}/comment-status`, {
+    method: "PATCH",
+    body: JSON.stringify({ commentStatus: newStatus }),
+  });
+  return res.data || null;
 }
 
 export async function toggleBlogStatus(id: string, newStatus: "PUBLIC" | "PRIVATE"): Promise<BlogSelect | null> {
-  const result = await db
-    .update(blogsTable)
-    .set({ status: newStatus, updatedAt: new Date() })
-    .where(eq(blogsTable.id, id))
-    .returning();
-  return result[0] || null;
+  const res = await apiClient<BlogSelect>(`blogs/${id}/status`, {
+    method: "PATCH",
+    body: JSON.stringify({ status: newStatus }),
+  });
+  return res.data || null;
 }
 
-// Comment Repository Operations
 export async function getCommentsByBlogId(blogId: string): Promise<CommentSelect[]> {
-  return await db
-    .select()
-    .from(commentsTable)
-    .where(eq(commentsTable.blogId, blogId))
-    .orderBy(desc(commentsTable.createdAt));
+  const blog = await getBlogById(blogId);
+  return (blog as any)?.comments || [];
 }
 
 export async function createComment(data: CommentInsert): Promise<CommentSelect> {
-  const result = await db.insert(commentsTable).values(data).returning();
-  return result[0];
+  const res = await apiClient<CommentSelect>(`blogs/${data.blogId}/comments`, {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+  return res.data!;
 }
 
 export async function deleteComment(id: string): Promise<boolean> {
-  const result = await db.delete(commentsTable).where(eq(commentsTable.id, id)).returning();
-  return result.length > 0;
+  const res = await apiClient(`blogs/comments/${id}`, {
+    method: "DELETE",
+  });
+  return res.success;
 }
 
 export async function toggleCommentApproval(id: string, isApproved: boolean): Promise<CommentSelect | null> {
-  const result = await db
-    .update(commentsTable)
-    .set({ isApproved, updatedAt: new Date() })
-    .where(eq(commentsTable.id, id))
-    .returning();
-  return result[0] || null;
+  const res = await apiClient<CommentSelect>(`blogs/comments/${id}/approval`, {
+    method: "PATCH",
+    body: JSON.stringify({ isApproved }),
+  });
+  return res.data || null;
 }

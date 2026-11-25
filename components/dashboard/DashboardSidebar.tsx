@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useTransition } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   LayoutDashboard,
   FileText,
@@ -18,6 +18,8 @@ import {
   LayoutGrid,
   PhoneCall,
   FileSpreadsheet,
+  LogOut,
+  Loader2,
 } from "lucide-react";
 import {
   Sidebar,
@@ -36,9 +38,13 @@ import {
   SidebarRail,
   SidebarSeparator,
 } from "@/components/ui/sidebar";
+import { logoutAction } from "@/modules/auth/application/auth.actions";
+import { toast } from "@/components/ui/sonner";
 
 export function DashboardSidebar() {
   const pathname = usePathname();
+  const router = useRouter();
+  const [isLoggingOut, startLogoutTransition] = useTransition();
 
   // Cek apakah rute saat ini berada di bawah Events / Competition
   const isEventsActive = pathname.startsWith("/dashboard/competition");
@@ -50,6 +56,19 @@ export function DashboardSidebar() {
       setEventsOpen(true);
     }
   }, [isEventsActive]);
+
+  const handleLogout = () => {
+    startLogoutTransition(async () => {
+      const res = await logoutAction();
+      if (res.success) {
+        toast.success(res.message || "Berhasil keluar (logout)");
+      } else {
+        toast.error(res.error || "Gagal melakukan logout");
+      }
+      router.push("/login");
+      router.refresh();
+    });
+  };
 
   return (
     <Sidebar collapsible="icon" className="">
@@ -224,6 +243,21 @@ export function DashboardSidebar() {
             >
               <ExternalLink className="h-4 w-4" />
               <span>Website Publik</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              tooltip="Keluar (Logout)"
+              onClick={handleLogout}
+              disabled={isLoggingOut}
+              className="cursor-pointer text-destructive hover:bg-destructive/10 hover:text-destructive focus:bg-destructive/10 focus:text-destructive transition-colors"
+            >
+              {isLoggingOut ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <LogOut className="h-4 w-4" />
+              )}
+              <span>{isLoggingOut ? "Mengeluarkan..." : "Keluar"}</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>

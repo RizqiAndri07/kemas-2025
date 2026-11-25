@@ -30,10 +30,14 @@ Dokumen ini mendefinisikan rancangan teknis, arsitektur aliran data, hak akses (
 5. **Fitur Kirim Ulang Email (*Resend Verification Email*):**
    - Superadmin memiliki tombol "Kirim Ulang Email" untuk pengguna berstatus `unverified` atau jika link sebelumnya telah kedaluwarsa (> 12 jam).
    - Sistem membatalkan token lama dan menerbitkan token baru yang berlaku selama 12 jam ke depan.
-6. **Proteksi Rute Menyeluruh (*Route Protection Middleware*):**
+6. **Proteksi Rute & Batas Masa Sesi 12 Jam (*Route Protection & 12-Hour Session Expiration*):**
    - Seluruh rute di bawah `/dashboard/*` diproteksi secara ketat menggunakan Next.js Middleware.
+   - **Masa Berlaku Sesi Maksimal 12 Jam:** Berdasarkan timestamp `user.last_sign_in_at`, middleware memvalidasi apakah sesi login pengguna sudah melewati 12 jam. Jika `Date.now() - last_sign_in_at > 12 jam`, sistem otomatis mencabut sesi (`supabase.auth.signOut()`), menghapus auth cookies, dan mengalihkan pengguna ke `/login?expired=1`.
    - Pengguna tanpa sesi aktif akan dialihkan (*redirect*) ke halaman `/login`.
-   - Pengguna yang sudah login akan dialihkan langsung ke `/dashboard` jika membuka halaman `/login`.
+   - Pengguna yang sudah login dan sesinya masih aktif (< 12 jam) akan dialihkan langsung ke `/dashboard` jika membuka halaman `/login`.
+7. **Tombol Keluar (*Logout Action*):**
+   - Tersedia di Header Profil Admin (`DashboardHeader`) dan di Sidebar Navigasi (`DashboardSidebar`) pada bagian footer.
+   - Menghapus sesi Supabase Auth, menampilkan umpan balik toast Sonner di posisi kanan bawah (`bottom-right`), dan mengarahkan kembali ke `/login`.
 
 ---
 

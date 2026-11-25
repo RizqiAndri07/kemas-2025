@@ -79,7 +79,7 @@ export default function RootLayout({
             />
           </div>
           <Footer />
-          <Toaster position="bottom-right" richColors />
+          <Toaster position="top-right" />
         </ThemeProvider>
       </body>
     </html>

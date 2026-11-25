@@ -1,24 +1,24 @@
-import { db } from "@/db";
-import { usersTable, UserInsert, UserSelect } from "./user.table";
-import { desc, eq, or, and, ne } from "drizzle-orm";
+import { apiClient } from "@/lib/api-client";
+import { UserSelect, UserInsert } from "./user.table";
 
 export async function getAllUsers(): Promise<UserSelect[]> {
-  return await db.select().from(usersTable).orderBy(desc(usersTable.createdAt));
+  const res = await apiClient<UserSelect[]>("auth/users");
+  return res.data || [];
 }
 
 export async function getUserById(id: string): Promise<UserSelect | null> {
-  const result = await db.select().from(usersTable).where(eq(usersTable.id, id));
-  return result[0] || null;
+  const users = await getAllUsers();
+  return users.find((u) => u.id === id) || null;
 }
 
 export async function getUserByEmail(email: string): Promise<UserSelect | null> {
-  const result = await db.select().from(usersTable).where(eq(usersTable.email, email));
-  return result[0] || null;
+  const users = await getAllUsers();
+  return users.find((u) => u.email.toLowerCase() === email.toLowerCase()) || null;
 }
 
 export async function getUserByUsername(username: string): Promise<UserSelect | null> {
-  const result = await db.select().from(usersTable).where(eq(usersTable.username, username));
-  return result[0] || null;
+  const users = await getAllUsers();
+  return users.find((u) => u.username.toLowerCase() === username.toLowerCase()) || null;
 }
 
 export async function findConflictingUser(
@@ -26,57 +26,54 @@ export async function findConflictingUser(
   email: string,
   excludeId?: string
 ): Promise<UserSelect | null> {
-  const query = db
-    .select()
-    .from(usersTable)
-    .where(
-      excludeId
-        ? and(ne(usersTable.id, excludeId), or(eq(usersTable.username, username), eq(usersTable.email, email)))
-        : or(eq(usersTable.username, username), eq(usersTable.email, email))
-    );
-  const result = await query;
-  return result[0] || null;
+  const users = await getAllUsers();
+  return (
+    users.find(
+      (u) =>
+        (!excludeId || u.id !== excludeId) &&
+        (u.username.toLowerCase() === username.toLowerCase() ||
+          u.email.toLowerCase() === email.toLowerCase())
+    ) || null
+  );
 }
 
 export async function createUser(data: UserInsert): Promise<UserSelect> {
-  const result = await db.insert(usersTable).values(data).returning();
-  return result[0];
+  const res = await apiClient<UserSelect>("auth/users", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+  return res.data!;
 }
 
 export async function updateUser(
   id: string,
   data: Partial<UserInsert>
 ): Promise<UserSelect | null> {
-  const result = await db
-    .update(usersTable)
-    .set({ ...data, updatedAt: new Date() })
-    .where(eq(usersTable.id, id))
-    .returning();
-  return result[0] || null;
+  const res = await apiClient<UserSelect>(`auth/users/${id}`, {
+    method: "PUT",
+    body: JSON.stringify(data),
+  });
+  return res.data || null;
 }
 
 export async function deleteUser(id: string): Promise<boolean> {
-  const result = await db.delete(usersTable).where(eq(usersTable.id, id)).returning();
-  return result.length > 0;
+  const res = await apiClient(`auth/users/${id}`, {
+    method: "DELETE",
+  });
+  return res.success;
 }
 
 export async function toggleUserStatus(
   id: string,
   newStatus: "verified" | "unverified"
 ): Promise<UserSelect | null> {
-  const result = await db
-    .update(usersTable)
-    .set({ status: newStatus, updatedAt: new Date() })
-    .where(eq(usersTable.id, id))
-    .returning();
-  return result[0] || null;
+  const res = await apiClient<UserSelect>(`auth/users/${id}/status`, {
+    method: "PATCH",
+    body: JSON.stringify({ status: newStatus }),
+  });
+  return res.data || null;
 }
 
 export async function recordLastLogin(id: string): Promise<UserSelect | null> {
-  const result = await db
-    .update(usersTable)
-    .set({ lastLogin: new Date(), updatedAt: new Date() })
-    .where(eq(usersTable.id, id))
-    .returning();
-  return result[0] || null;
+  return null;
 }

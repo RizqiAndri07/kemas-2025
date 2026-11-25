@@ -1,134 +1,99 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { apiClient } from "@/lib/api-client";
 import {
-  createCompetitionFormMetaSchema,
   saveCompetitionFormSchema,
-  CreateCompetitionFormMetaInput,
   SaveCompetitionFormInput,
 } from "../domain/competition-form.schema";
-import * as formRepo from "../infrastructure/competition-form.repository";
-import * as competitionRepo from "../infrastructure/competition.repository";
-import { ActionResult } from "@/modules/shared/domain/common.types";
-import { requireAuthUser } from "@/modules/auth/application/auth.guard";
 import { CompetitionFormSelect } from "../infrastructure/competition-form.table";
+import { ActionResult } from "@/modules/shared/domain/common.types";
 
-/**
- * Mengambil semua formulir milik suatu kompetisi
- */
+export async function createCompetitionFormAction(payload: {
+  competitionId: string;
+  title: string;
+  description?: string;
+}): Promise<ActionResult<{ id: string }>> {
+  try {
+    const res = await apiClient<{ id: string }>("competitions/forms/save", {
+      method: "POST",
+      body: JSON.stringify({
+        id: crypto.randomUUID(),
+        competitionId: payload.competitionId,
+        title: payload.title,
+        description: payload.description,
+        sections: [
+          {
+            id: "section_identitas",
+            title: "Identitas Pendaftar",
+            description: "Lengkapi data identitas calon peserta lomba.",
+            order: 1,
+            fields: [],
+          },
+        ],
+      }),
+    });
+
+    revalidatePath("/dashboard/competition/forms");
+    return {
+      success: true,
+      message: res.message || "Formulir berhasil dibuat!",
+      data: res.data,
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Gagal membuat formulir",
+    };
+  }
+}
+
 export async function getCompetitionFormsAction(
   competitionId: string
 ): Promise<ActionResult<CompetitionFormSelect[]>> {
   try {
-    await requireAuthUser();
-    const forms = await formRepo.getFormsByCompetitionId(competitionId);
+    const res = await apiClient<CompetitionFormSelect[]>(`competitions/${competitionId}/forms`);
     return {
       success: true,
-      data: forms,
+      data: res.data || [],
     };
   } catch (error) {
-    console.error("Error fetching competition forms:", error);
+    console.error("Error getting competition forms:", error);
     return {
       success: false,
-      error: error instanceof Error ? error.message : "Gagal memuat formulir kompetisi",
+      error: error instanceof Error ? error.message : "Gagal memuat formulir",
     };
   }
 }
 
-/**
- * Mengambil detail satu formulir berdasarkan ID
- */
 export async function getCompetitionFormByIdAction(
-  id: string
-): Promise<ActionResult<CompetitionFormSelect | null>> {
+  formId: string
+): Promise<ActionResult<CompetitionFormSelect>> {
   try {
-    await requireAuthUser();
-    const form = await formRepo.getFormById(id);
-    return {
-      success: true,
-      data: form,
-    };
-  } catch (error) {
-    console.error("Error fetching form by id:", error);
-    return {
-      success: false,
-      error: error instanceof Error ? error.message : "Gagal memuat data formulir",
-    };
-  }
-}
-
-/**
- * Membuat formulir baru untuk kompetisi (metadata awal)
- */
-export async function createCompetitionFormAction(
-  payload: CreateCompetitionFormMetaInput
-): Promise<ActionResult<{ id: string }>> {
-  try {
-    await requireAuthUser();
-
-    const validated = createCompetitionFormMetaSchema.safeParse(payload);
-    if (!validated.success) {
+    const res = await apiClient<CompetitionFormSelect>(`competitions/forms/${formId}`);
+    if (!res.success || !res.data) {
       return {
         success: false,
-        error: validated.error.issues[0]?.message || "Validasi formulir gagal",
+        error: res.error || "Formulir tidak ditemukan",
       };
     }
-
-    const { competitionId, title, description } = validated.data;
-
-    // Buat formulir baru dengan section default
-    const newForm = await formRepo.createCompetitionForm({
-      competitionId,
-      title: title.trim(),
-      description: description ? description.trim() : null,
-      sections: [
-        {
-          id: "sec_default",
-          title: "Informasi Pendaftaran",
-          description: "Silakan lengkapi data pendaftaran di bawah ini.",
-          order: 0,
-          fields: [],
-        },
-      ],
-    });
-
-    // Jika kompetisi belum memiliki activeFormId dan noRegistrationNeeded == false, set otomatis form ini sebagai activeForm
-    const comp = await competitionRepo.getCompetitionById(competitionId);
-    if (comp && !comp.activeFormId && !comp.noRegistrationNeeded) {
-      await competitionRepo.setActiveForm(competitionId, newForm.id);
-    }
-
-    try {
-      revalidatePath(`/dashboard/competition/${competitionId}`);
-      revalidatePath(`/dashboard/competition/${competitionId}/forms`);
-      revalidatePath(`/dashboard/competition/${competitionId}/edit`);
-    } catch {
-      // Abaikan di luar HTTP context
-    }
-
     return {
       success: true,
-      data: { id: newForm.id },
-      message: `Formulir "${newForm.title}" berhasil dibuat!`,
+      data: res.data,
     };
   } catch (error) {
-    console.error("Error creating competition form:", error);
+    console.error("Error getting competition form by id:", error);
     return {
       success: false,
-      error: error instanceof Error ? error.message : "Gagal membuat formulir pendaftaran",
+      error: error instanceof Error ? error.message : "Gagal memuat formulir",
     };
   }
 }
 
-/**
- * Menyimpan seluruh konfigurasi formulir (sections, fields, validations)
- */
 export async function saveCompetitionFormAction(
   payload: SaveCompetitionFormInput
 ): Promise<ActionResult<{ id: string }>> {
   try {
-    await requireAuthUser();
-
     const validated = saveCompetitionFormSchema.safeParse(payload);
     if (!validated.success) {
       return {
@@ -137,112 +102,90 @@ export async function saveCompetitionFormAction(
       };
     }
 
-    const { id, competitionId, title, description, sections } = validated.data;
-
-    const updated = await formRepo.updateCompetitionForm(id, {
-      title: title.trim(),
-      description: description ? description.trim() : null,
-      sections,
+    const res = await apiClient<{ id: string }>("competitions/forms/save", {
+      method: "POST",
+      body: JSON.stringify(validated.data),
     });
 
-    if (!updated) {
+    if (!res.success || !res.data) {
       return {
         success: false,
-        error: "Formulir tidak ditemukan atau gagal diperbarui",
+        error: res.error || "Gagal menyimpan formulir",
       };
     }
 
-    try {
-      revalidatePath(`/dashboard/competition/${competitionId}/forms`);
-      revalidatePath(`/dashboard/competition/${competitionId}/forms/${id}`);
-      revalidatePath(`/competition/${competitionId}/register`);
-    } catch {
-      // Abaikan di luar HTTP context
-    }
+    revalidatePath(`/dashboard/competition/${payload.competitionId}/form`);
+    revalidatePath(`/dashboard/competition/${payload.competitionId}/forms`);
+    revalidatePath(`/dashboard/competition/forms`);
 
     return {
       success: true,
-      data: { id: updated.id },
-      message: "Formulir pendaftaran berhasil disimpan!",
+      message: res.message || "Struktur formulir pendaftaran berhasil disimpan!",
+      data: res.data,
     };
   } catch (error) {
     console.error("Error saving competition form:", error);
     return {
       success: false,
-      error: error instanceof Error ? error.message : "Gagal menyimpan formulir pendaftaran",
+      error: error instanceof Error ? error.message : "Gagal menyimpan formulir",
     };
   }
 }
 
-/**
- * Menghapus formulir
- */
 export async function deleteCompetitionFormAction(
-  id: string,
-  competitionId: string
+  formId: string,
+  competitionId?: string
 ): Promise<ActionResult<void>> {
   try {
-    await requireAuthUser();
+    const res = await apiClient(`competitions/forms/${formId}`, {
+      method: "DELETE",
+    });
 
-    const deleted = await formRepo.deleteCompetitionForm(id);
-    if (!deleted) {
+    if (!res.success) {
       return {
         success: false,
-        error: "Formulir tidak ditemukan atau gagal dihapus",
+        error: res.error || "Gagal menghapus formulir",
       };
     }
 
-    try {
-      revalidatePath(`/dashboard/competition/${competitionId}`);
-      revalidatePath(`/dashboard/competition/${competitionId}/forms`);
-      revalidatePath(`/dashboard/competition/${competitionId}/edit`);
-    } catch {
-      // Abaikan di luar HTTP context
-    }
+    revalidatePath(`/dashboard/competition/forms`);
 
     return {
       success: true,
       data: undefined,
-      message: "Formulir pendaftaran berhasil dihapus!",
+      message: res.message || "Formulir pendaftaran berhasil dihapus!",
     };
   } catch (error) {
     console.error("Error deleting competition form:", error);
     return {
       success: false,
-      error: error instanceof Error ? error.message : "Gagal menghapus formulir pendaftaran",
+      error: error instanceof Error ? error.message : "Gagal menghapus formulir",
     };
   }
 }
 
-/**
- * Menduplikasi formulir yang sudah ada
- */
 export async function duplicateCompetitionFormAction(
-  id: string,
-  competitionId: string
+  formId: string,
+  competitionId?: string
 ): Promise<ActionResult<{ id: string }>> {
   try {
-    await requireAuthUser();
+    const res = await apiClient<{ id: string }>(`competitions/forms/${formId}/duplicate`, {
+      method: "POST",
+    });
 
-    const duplicated = await formRepo.duplicateCompetitionForm(id);
-    if (!duplicated) {
+    if (!res.success || !res.data) {
       return {
         success: false,
-        error: "Gagal menduplikasi formulir",
+        error: res.error || "Gagal menduplikasi formulir",
       };
     }
 
-    try {
-      revalidatePath(`/dashboard/competition/${competitionId}`);
-      revalidatePath(`/dashboard/competition/${competitionId}/forms`);
-    } catch {
-      // Abaikan di luar HTTP context
-    }
+    revalidatePath(`/dashboard/competition/forms`);
 
     return {
       success: true,
-      data: { id: duplicated.id },
-      message: `Formulir "${duplicated.title}" berhasil diduplikasi!`,
+      message: res.message || "Formulir pendaftaran berhasil diduplikasi!",
+      data: res.data,
     };
   } catch (error) {
     console.error("Error duplicating competition form:", error);
@@ -253,42 +196,33 @@ export async function duplicateCompetitionFormAction(
   }
 }
 
-/**
- * Mengubah formulir aktif untuk pendaftaran kompetisi
- */
 export async function setActiveCompetitionFormAction(
   competitionId: string,
-  formId: string | null
+  formId: string
 ): Promise<ActionResult<void>> {
   try {
-    await requireAuthUser();
+    const res = await apiClient(`competitions/${competitionId}/forms/${formId}/activate`, {
+      method: "PATCH",
+    });
 
-    const updated = await competitionRepo.setActiveForm(competitionId, formId);
-    if (!updated) {
+    if (!res.success) {
       return {
         success: false,
-        error: "Kompetisi tidak ditemukan",
+        error: res.error || "Gagal mengatur formulir aktif",
       };
     }
 
-    try {
-      revalidatePath(`/dashboard/competition/${competitionId}`);
-      revalidatePath(`/dashboard/competition/${competitionId}/forms`);
-      revalidatePath(`/dashboard/competition/${competitionId}/edit`);
-      revalidatePath("/dashboard/competition");
-    } catch {
-      // Abaikan di luar HTTP context
-    }
+    revalidatePath(`/dashboard/competition/${competitionId}/forms`);
+    revalidatePath(`/dashboard/competition/${competitionId}/edit`);
+    revalidatePath(`/dashboard/competition/forms`);
 
     return {
       success: true,
       data: undefined,
-      message: formId
-        ? "Formulir berhasil ditetapkan sebagai formulir pendaftaran aktif!"
-        : "Formulir pendaftaran aktif telah dikosongkan.",
+      message: res.message || "Formulir berhasil dipasang sebagai formulir aktif!",
     };
   } catch (error) {
-    console.error("Error setting active form:", error);
+    console.error("Error setting active competition form:", error);
     return {
       success: false,
       error: error instanceof Error ? error.message : "Gagal mengatur formulir aktif",

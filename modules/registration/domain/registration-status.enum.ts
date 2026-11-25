@@ -1,15 +1,18 @@
-import { pgEnum } from "drizzle-orm/pg-core";
-
-export const registrationStatusEnum = pgEnum("registration_status", [
+export const REGISTRATION_STATUS_VALUES = [
   "UNVERIFIED",
   "VERIFIED",
   "REJECTED",
-]);
+] as const;
 
-export type RegistrationStatus = (typeof registrationStatusEnum.enumValues)[number];
+export const registrationStatusEnum = {
+  enumValues: REGISTRATION_STATUS_VALUES,
+};
+
+export type RegistrationStatus = (typeof REGISTRATION_STATUS_VALUES)[number];
 
 export const RegistrationStatusLabels: Record<RegistrationStatus, string> = {
   UNVERIFIED: "Belum Terverifikasi",
   VERIFIED: "Terverifikasi",
   REJECTED: "Ditolak",
 };
+

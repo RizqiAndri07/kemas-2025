@@ -1,21 +1,24 @@
-# Architecture & Data Layer Rules
+# Architecture & Frontend Layer Rules
+**Kemas Prasasti 2025 - Frontend Application (`fe-app`)**
 
-Dokumen ini mengatur arsitektur sistem berbasis **Domain-Driven Design (DDD)**, pembagian tanggung jawab layanan, dan penanganan data menggunakan Supabase, PostgreSQL, dan Drizzle ORM.
+Dokumen ini mengatur arsitektur aplikasi Frontend berbasis **Domain-Driven Design (DDD)**, pembagian tanggung jawab layanan, dan penanganan data melalui komunikasi RESTful API dengan Backend Express.js (`be-app`).
 
 ---
 
-## 1. Aturan Arsitektur Domain-Driven Design (DDD)
+## 1. Aturan Arsitektur Domain-Driven Design (DDD) di Frontend
 
-Sistem dibagi ke dalam **Bounded Contexts** di direktori `modules/` (`auth`, `competition`, `registration`, `blog`, `shared`). Setiap modul wajib mematuhi pemisahan 4 lapisan:
+Aplikasi frontend dibagi ke dalam **Bounded Contexts** di direktori `modules/` (`auth`, `competition`, `registration`, `blog`, `shared`). Setiap modul mematuhi pemisahan 4 lapisan:
 
 1. **Domain Layer (`modules/<domain>/domain/`):**
    - Murni TypeScript bisnis (Entities, Value Objects, Domain Interfaces, Domain Enums, Zod Schemas).
    - **Aturan Ketat:** DILARANG mengimpor library UI, React hooks, atau framework Next.js.
 2. **Application Layer (`modules/<domain>/application/`):**
    - Use cases, orchestrator alur data, DTOs, dan Next.js Server Actions.
-   - Mengambil data melalui repositori infrastruktur dan memvalidasi state menggunakan model domain.
+   - Bertindak sebagai jembatan/BFF (Backend-For-Frontend) yang memvalidasi form input via Zod lalu meneruskannya ke REST API `be-app`.
 3. **Infrastructure Layer (`modules/<domain>/infrastructure/`):**
-   - Skema tabel Drizzle ORM (`pgTable`), implementasi repository data access, adapter Supabase Auth, dan adapter Supabase Storage.
+   - Definisi tipe data respons DTO (`*.table.ts` sebagai pure TypeScript interfaces).
+   - Repositori frontend (`*.repository.ts`) yang memanggil endpoint Express backend via `apiClient` (`lib/api-client.ts`).
+   - DILARANG memanggil database langsung (PostgreSQL/Supabase/Drizzle) dari layer ini.
 4. **Presentation Layer (`modules/<domain>/presentation/`):**
    - Komponen UI spesifik per domain (misal: `CompetitionCard`, `RegistrationForm`, `TiptapEditor`).
    - Wajib dibangun di atas primitif atomik Shadcn UI dari `@/components/ui`.
@@ -24,74 +27,33 @@ Sistem dibagi ke dalam **Bounded Contexts** di direktori `modules/` (`auth`, `co
 
 ## 2. Pembagian Peran Teknologi (Separation of Concerns)
 
-Proyek ini memanfaatkan arsitektur modern fullstack:
-- **Next.js App Router (React 19):** Web server, SSR, SSG/ISR untuk konten blog/landing page, dan API route handlers / Server Actions.
-- **Supabase Auth:**
-  - Menangani autentikasi admin panel (email/password & OAuth).
-  - Manajemen sesi berbasis secure cookies melalui `@supabase/ssr` (mendukung Next.js Middleware, Server Components, dan Server Actions).
-- **PostgreSQL (Supabase Database):**
-  - Penyimpanan data utama yang relasional, konsisten, dan ACID-compliant.
-  - Skema data terpusat di `db/schema/*.ts` dengan migrasi berkala via `drizzle-kit`.
-- **Drizzle ORM:**
-  - Data access layer TypeScript-first yang ultra-ringan tanpa overhead binary engine.
-  - Type-safe querying menggunakan Drizzle query builder dan Relational Queries API (`db.query.*`).
-  - Menyediakan inferensi tipe otomatis (`$inferSelect` dan `$inferInsert`) langsung dari definisi tabel PostgreSQL.
-- **Supabase Storage:**
-  - Menyimpan file & gambar (bukti transfer pembayaran, kartu tanda pengenal peserta, cover blog, gambar media konten).
-  - Dilindungi oleh Storage Row Level Security (RLS) dan validasi ukuran/tipe file.
-- **Supabase Realtime:**
-  - Sinkronisasi event real-time jika dibutuhkan (misal pembaruan sisa kuota lomba atau status verifikasi langsung di dashboard panitia).
+- **Next.js App Router (React 19):** Web server, SSR, SSG/ISR untuk konten blog/landing page, dan Server Actions / API Proxy.
+- **RESTful API Client (`lib/api-client.ts`):**
+  - Mengirim HTTP request ke Express backend (`NEXT_PUBLIC_API_URL` / `API_INTERNAL_URL`).
+  - Menangani penerusan otentikasi Bearer Token dari cookie `kp_auth_token`.
+- **Shadcn UI & Tailwind CSS v4:**
+  - Standar antarmuka pengguna interaktif dan responsif.
+  - Komponen dialog, form, sheet, dropdown, dan data-table.
+- **Sonner Toast:**
+  - Notifikasi interaktif di posisi `top-right`.
 - **Zod:**
-  - Single source of truth untuk validasi schema di sisi frontend dan backend sebelum data diproses oleh database.
+  - Single source of truth untuk validasi formulir dan skema input di sisi frontend.
 
 ---
 
-## 2. Aturan Keamanan & Akses Data
+## 3. Aturan Keamanan & Akses Data
 
 1. **Client vs Server Boundary:**
-   - Kredensial rahasia (`SUPABASE_SERVICE_ROLE_KEY`, `DATABASE_URL`, `DIRECT_URL`) **HANYA** boleh diakses di runtime server (Server Components, Route Handlers, Server Actions).
-   - Di sisi browser (`'use client'`), hanya kredensial publik Supabase (`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`) yang diizinkan untuk kebutuhan client SDK.
-2. **Server Actions & Route Handlers:**
-   - Semua mutasi data (CREATE, UPDATE, DELETE) harus memvalidasi sesi dan peran pengguna (role-based access control, khususnya peran Admin).
-   - Selalu lakukan validasi payload dengan `schema.safeParse()` sebelum memanggil query Drizzle ORM.
-3. **Storage Security:**
-   - Folder/bucket privat (seperti bukti pembayaran & scan identitas) dibatasi akses baca publiknya dan hanya dapat diakses melalui signed URL atau oleh admin berwenang.
+   - Tidak ada koneksi database langsung di `fe-app`.
+   - `NEXT_PUBLIC_API_URL` digunakan untuk client-side fetch jika diperlukan, dan `API_INTERNAL_URL` untuk SSR / Server Actions ke backend.
+2. **Server Actions & Route Guard:**
+   - Proteksi rute `/dashboard/*` dikelola melalui `middleware.ts` yang memvalidasi cookie `kp_auth_token` ke endpoint `GET /api/auth/me` pada `be-app`.
+   - Server Actions meneruskan token sesi pengguna ke backend untuk diverifikasi hak aksesnya (RBAC).
 
 ---
 
-## 3. Struktur Pengorganisasian Kode Backend
+## 4. Standar Interface Data & Audit Timestamps
 
-- **`lib/supabase/`**:
-  - `client.ts`: Inisialisasi Supabase Client untuk browser (`createBrowserClient` dari `@supabase/ssr`).
-  - `server.ts`: Inisialisasi Supabase Client untuk Server Components & Actions (`createServerClient` dengan cookie store).
-  - `middleware.ts`: Helper untuk sinkronisasi sesi & token refresh pada Next.js Middleware.
-- **`db/`**:
-  - `index.ts`: Inisialisasi koneksi `db` menggunakan `drizzle(postgres(process.env.DATABASE_URL!))` dengan driver `postgres.js` yang terhubung ke Supavisor pooler.
-  - `schema/`: Definisi tabel dan relasi menggunakan `pgTable` dari `drizzle-orm/pg-core` (misal: `users.ts`, `competitions.ts`, `registrations.ts`, `blogs.ts`).
-- **`drizzle.config.ts`**:
-  - Konfigurasi `drizzle-kit` untuk membaca `db/schema/` dan menghasilkan artefak migrasi SQL di folder `drizzle/`.
-- **`services/`**:
-  - Berisi fungsi business logic yang memisahkan antara handler UI/API dan akses data mentah Drizzle.
-
----
-
-## 4. Standar Wajib Skema Database (Audit Timestamp createdAt & updatedAt)
-
-Setiap kali mendefinisikan atau membuat skema tabel database baru di Drizzle ORM (`pgTable`):
-
-1. **Wajib Memiliki Field Audit Waktu:**
-   - Field **`createdAt`** dan **`updatedAt`** adalah atribut **wajib (mandatory / default)** pada seluruh skema entitas data utama untuk keperluan audit trail dan integritas data.
-2. **Definisi Standar Drizzle ORM:**
-   ```typescript
-   import { timestamp } from "drizzle-orm/pg-core";
-
-   // Standar kolom waktu pada setiap tabel
-   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
-   updatedAt: timestamp("updated_at", { withTimezone: true })
-     .defaultNow()
-     .$onUpdate(() => new Date())
-     .notNull(),
-   ```
-3. **Pengecualian Khusus:**
-   - Tabel relasi *junction/pivot* (relasi $M:N$, misal `competition_contact_persons`) atau log token immutable yang tidak pernah mengalami operasi *update* minimal **wajib memiliki `createdAt`**.
-   - Seluruh tabel entitas bisnis reguler lainnya **wajib memiliki kedua field tersebut (`createdAt` & `updatedAt`)**.
+Setiap tipe data DTO entitas dari backend (`*.table.ts`):
+1. **Atribut Wajib Audit:** Memiliki `createdAt` dan `updatedAt` bertipe `Date | string`.
+2. **Pure TypeScript:** Seluruh definisi model data di `fe-app` menggunakan `interface` atau `type` murni tanpa library ORM eksternal.

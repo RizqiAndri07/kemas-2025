@@ -75,9 +75,9 @@ Sebelum melakukan tindakan apa pun di repository ini, AI Agent **WAJIB** mematuh
        .notNull(),
      ```
    - *(Catatan: Pada tabel relasi pivot M:N atau log token immutable yang tidak pernah diperbarui, minimal `createdAt` wajib ada. Pada seluruh entitas data utama, kedua field tersebut wajib ada).*
-8. **STANDAR NOTIFIKASI FEEDBACK & ERROR HANDLING (TOAST SHADCN UI DI KANAN BAWAH):**
+8. **STANDAR NOTIFIKASI FEEDBACK & ERROR HANDLING (TOAST SHADCN UI DI KANAN ATAS):**
    - Setiap kali melakukan mutasi data, mengeksekusi Server Action, atau menangani error handling pada aplikasi, informasi status **BERHASIL** maupun **GAGAL/ERROR** **WAJIB** ditampilkan menggunakan komponen **Toast Shadcn UI (`sonner`)**.
-   - **Posisi Notifikasi Wajib:** Notifikasi toast **WAJIB** dikonfigurasi di posisi **kanan bawah (`position="bottom-right"`)**.
+   - **Posisi & Styling Notifikasi:** Notifikasi toast dikonfigurasi di posisi **kanan atas (`position="top-right"`)**, tanpa `richColors`, dengan visual card-like (menggunakan padding, warna `bg-card`/`text-card-foreground`, border `border-border`, ring subtle, dan rounded card).
    - **Standar Kode Penggunaan:**
      ```typescript
      import { toast } from "@/components/ui/sonner";
@@ -88,7 +88,7 @@ Sebelum melakukan tindakan apa pun di repository ini, AI Agent **WAJIB** mematuh
      // Aksi Gagal / Error Handling
      toast.error(res.error || "Terjadi kesalahan saat memproses permintaan.");
      ```
-   - Komponen `<Toaster position="bottom-right" richColors />` dipasang di root layout dan dipanggil secara konsisten di seluruh form, dialog, dan tombol aksi interaktif.
+   - Komponen `<Toaster position="top-right" />` dipasang di layout dan dipanggil secara konsisten di seluruh form, dialog, dan tombol aksi interaktif.
 
 ---
 
@@ -163,3 +163,13 @@ Arsitektur backend dan data layer secara penuh menggunakan **Supabase** dan **Po
 - [environment.md](file:///home/kinggu/Documents/Project/kemas-2025/docs/infrastructure/environment.md) - Konfigurasi variabel lingkungan (.env)
 - [design-system.md](file:///home/kinggu/Documents/Project/kemas-2025/docs/design/design-system.md) - Panduan desain antarmuka, warna & komponen
 
+
+<!-- BEGIN:nextjs-agent-rules -->
+
+## This is NOT the Next.js you know
+
+This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
+
+This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
+
+<!-- END:nextjs-agent-rules -->
