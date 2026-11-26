@@ -1,6 +1,7 @@
 # Coding Standards & Best Practices
+**Kemas Prasasti 2025 - Frontend Application (`fe-app`)**
 
-Panduan standar penulisan kode untuk proyek **Kemas Prasasti 2025**.
+Panduan standar penulisan kode untuk aplikasi frontend berbasis Next.js App Router, React 19, Tailwind CSS v4, dan Shadcn UI.
 
 ---
 
@@ -9,6 +10,7 @@ Panduan standar penulisan kode untuk proyek **Kemas Prasasti 2025**.
 - **Strict Mode:** Selalu gunakan type yang jelas dan hindari penggunaan `any`. Jika tipe dinamis diperlukan, gunakan `unknown` dengan type narrowing atau generics.
 - **Pemisahan Tipe:**
   - Interfaces/types data global disimpan di folder `types/` (misal: `event.interface.ts`, `blog.interface.ts`, `user.interface.ts`).
+  - DTO (Data Transfer Objects) untuk komunikasi dengan backend didefinisikan di `modules/<domain>/infrastructure/*.table.ts` sebagai pure TypeScript interfaces.
   - Tipe inferensi dari skema Zod diekspor langsung dari berkas schema terkait menggunakan `z.infer<typeof schema>`.
 - **Naming Conventions:**
   - Interfaces diawali huruf `I` atau penamaan deskriptif (`ICompetition`, `BlogPost`, `RegistrationPayload`).
@@ -16,7 +18,7 @@ Panduan standar penulisan kode untuk proyek **Kemas Prasasti 2025**.
 
 ---
 
-## 2. Next.js App Router Conventions
+## 2. Next.js App Router Conventions (React 19)
 
 - **Server Components by Default:**
   - Seluruh komponen di dalam direktori `app/` adalah Server Components secara default.
@@ -26,7 +28,7 @@ Panduan standar penulisan kode untuk proyek **Kemas Prasasti 2025**.
   - `(detail)`: Halaman detail (detail kompetisi, detail artikel blog).
   - `(dashboard)`: Halaman administrasi yang dilindungi autentikasi (CMS blog, verifikasi peserta, settings).
 - **Data Fetching:**
-  - Fetch data di Server Component menggunakan async/await atau Server Actions.
+  - Fetch data di Server Component menggunakan async/await via Server Actions atau `apiClient` (`lib/api-client.ts`).
   - Hindari waterfall fetching; gunakan `Promise.all` bila melakukan beberapa query paralel.
   - Sediakan UI states: `loading.tsx`, `error.tsx`, dan `not-found.tsx` pada setiap route group yang relevan.
 
@@ -35,7 +37,7 @@ Panduan standar penulisan kode untuk proyek **Kemas Prasasti 2025**.
 ## 3. Validasi Data & Form (Zod)
 
 - Setiap input formulir (pendaftaran, login admin, create blog) **wajib** divalidasi dengan Zod di sisi klien dan divalidasi ulang di sisi server (Server Action / Route Handler).
-- Skema disimpan di direktori `schema/` (contoh: `schema/competition-registration.schema.ts`, `schema/blog-post.schema.ts`).
+- Skema disimpan di direktori `schema/` atau `modules/<domain>/domain/*.schema.ts`.
 - Skema harus memberikan pesan error yang ramah pengguna dalam Bahasa Indonesia.
 
 ---
@@ -44,7 +46,7 @@ Panduan standar penulisan kode untuk proyek **Kemas Prasasti 2025**.
 
 - Gunakan class utility Tailwind CSS v4. Hindari inline style kecuali untuk nilai dinamis yang tidak dapat diprediksi.
 - Komponen reusable berbasis Radix UI / Shadcn disimpan di `components/ui/`.
-- Komponen domain-specific (misal: `CompetitionCard`, `HeroBanner`, `RegistrationForm`) disimpan di `components/features/` atau subfolder komponen yang relevan.
+- Komponen domain-specific (misal: `CompetitionCard`, `HeroBanner`, `RegistrationForm`) disimpan di `modules/<domain>/presentation/` atau `components/`.
 - Gunakan helper `cn()` dari `lib/utils.ts` untuk penggabungan conditional class.
 
 ---
@@ -75,42 +77,46 @@ Seluruh antarmuka pada area **Admin Dashboard** (`app/(dashboard)`) **WAJIB** me
      - **`DataTablePagination` / `DataTable`:** Pengendali paginasi, pencarian, dan filter tabel terpusat.
 3. **Standar Data Table Shadcn UI (Wajib - Bukan Tabel Biasa):**
    - Setiap tabel data yang dibuat pada area admin dashboard **dilarang menggunakan tabel biasa / statis**.
-   - Setiap tabel **wajib** mengintegrasikan kontrol standar Data Table:
+   - Setiap tabel **wajib** mengintegrasikan kontrol standar Data Table (`@tanstack/react-table` + Shadcn UI Table):
      - Header sorting interaktif (`DataTableColumnHeader`) pada kolom-kolom utama.
      - Toolbar filter dan input pencarian reaktif.
      - Paginasi data lengkap (`DataTablePagination`) dengan pengaturan baris per halaman (*rows per page*: 5, 10, 20, 50).
      - Tampilan kosong (*empty state*) terstandarisasi dengan `EmptyState`.
+     - Aksi terstruktur pada tiap baris menggunakan `DropdownMenu`.
 4. **Props Bersih & TypeScript Strict:**
    - Setiap komponen reusable wajib memiliki interface Props yang eksplisit (`[ComponentName]Props`).
    - Mendukung prop `className` opsional dengan `cn()` untuk ekstensi layout bila diperlukan.
 
 ---
 
-## 6. Standar Skema Database & Audit Timestamp (Drizzle ORM)
+## 6. Standar Integrasi Data & Model Kontrak API (BFF / Server Actions)
 
-Setiap kali membuat atau mendefinisikan skema tabel database baru di Drizzle ORM (`pgTable`):
+Di `fe-app`, tidak ada akses database langsung (PostgreSQL/Drizzle ORM diisolasi di `be-app`):
 
-1. **Wajib Memiliki Kolom Audit `createdAt` & `updatedAt`:**
-   - Kolom **`createdAt`** dan **`updatedAt`** adalah atribut bawaan (*default*) yang **wajib** ada pada setiap tabel data utama untuk menjamin integritas riwayat pencatatan data.
-2. **Definisi Standar:**
-   ```typescript
-   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
-   updatedAt: timestamp("updated_at", { withTimezone: true })
-     .defaultNow()
-     .$onUpdate(() => new Date())
-     .notNull(),
-   ```
-3. **Pengecualian:**
-   - Pada tabel relasi pivot many-to-many (misal: `competition_contact_persons`) atau tabel token/log yang bersifat immutable (hanya sekali dibuat dan tidak pernah diperbarui), minimal kolom **`createdAt`** wajib disertakan.
+1. **Konsumsi REST API:**
+   - Seluruh komunikasi data dengan backend menggunakan `apiClient` (`lib/api-client.ts`) yang memanggil Express API di `NEXT_PUBLIC_API_URL` (client) atau `API_INTERNAL_URL` (server).
+2. **Standard API Response Parsing:**
+   - Response backend selalu mengikuti format envelope:
+     ```typescript
+     export interface ApiResponse<T = any> {
+       success: boolean;
+       message?: string;
+       data?: T;
+       error?: string;
+       code?: string;
+     }
+     ```
+3. **Audit Fields pada Model DTO:**
+   - Setiap model entitas dari backend (`modules/<domain>/infrastructure/*.table.ts`) menyertakan field audit `createdAt` dan `updatedAt` bertipe `Date | string`.
 
 ---
 
 ## 7. Standar Notifikasi Toast & Feedback Error Handling (Shadcn UI)
 
-Seluruh umpan balik aksi pengguna (*mutasi data, login, create, update, delete, submit form, upload berkas*) dan *error handling* **WAJIB** menggunakan komponen **Toast Shadcn UI (`sonner`)** di posisi **kanan bawah**:
+Seluruh umpan balik aksi pengguna (*mutasi data, login, create, update, delete, submit form, upload berkas*) dan *error handling* **WAJIB** menggunakan komponen **Toast Shadcn UI (`sonner`)** di posisi **kanan atas (`top-right`)**:
 
 1. **Posisi Standar Wajib:**
-   - Toast selalu ditampilkan di **kanan bawah** (`position="bottom-right"`).
+   - Toast selalu dikonfigurasi di **kanan atas** (`position="top-right"`).
 2. **Penggunaan `toast`:**
    ```typescript
    import { toast } from "@/components/ui/sonner";
@@ -125,4 +131,3 @@ Seluruh umpan balik aksi pengguna (*mutasi data, login, create, update, delete, 
    - Jangan menampilkan alert statis yang mengganggu alur UI jika notifikasi toast sudah cukup mewakili informasi status.
    - Pada aksi asinkron berat, disarankan menggunakan `toast.loading()` atau `toast.promise()` jika diperlukan.
    - Pemasangan `<Toaster position="top-right" />` berada di root layout dengan styling menyerupai Card (border, padding, warna kartu tanpa richColors).
-

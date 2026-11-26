@@ -1,16 +1,17 @@
 # Agent Workflow Rules
+**Kemas Prasasti 2025 - Frontend Application (`fe-app`)**
 
-Dokumen ini mendefinisikan aturan operasional wajib bagi AI Agent yang bekerja pada repositori **Kemas Prasasti 2025**.
+Dokumen ini mendefinisikan aturan operasional wajib bagi AI Agent yang bekerja pada repositori frontend **Kemas Prasasti 2025 (`fe-app`)**.
 
 ---
 
 ## 1. Fase Perencanaan & Diskusi (Strict Requirement)
 
 - **Jangan Menulis Kode Implementasi Sebelum Disetujui:**
-  - AI Agent dilarang langsung membuat atau memodifikasi file aplikasi (`app/`, `components/`, `lib/`, `schema/`, dll.) tanpa perintah eksplisit dari pengguna.
+  - AI Agent dilarang langsung membuat atau memodifikasi file aplikasi (`app/`, `components/`, `lib/`, `modules/`, dll.) tanpa konfirmasi dan rencana kerja yang jelas.
   - Setiap inisiatif baru harus diawali dengan diskusi kebutuhan, perumusan spesifikasi, dan pembaruan dokumen terkait di folder `docs/`.
-- **Konfirmasi Desain Arsitektur:**
-  - Untuk setiap penambahan model database, endpoint API, atau third-party integration, ajukan arsitektur/desainnya terlebih dahulu kepada pengguna.
+- **Konfirmasi Desain UI & Kontrak API:**
+  - Untuk setiap penambahan halaman baru, form, atau integrasi API backend, ajukan arsitektur/desainnya serta kontrak endpoint `be-app` terlebih dahulu kepada pengguna.
 
 ---
 
@@ -19,9 +20,12 @@ Dokumen ini mendefinisikan aturan operasional wajib bagi AI Agent yang bekerja p
 - **Gunakan Package Manager `pnpm`:**
   - Segala instalasi dependensi harus menggunakan `pnpm add <pkg>` atau `pnpm add -D <pkg>`.
   - Hindari `npm install`, `yarn add`, atau `bun install` untuk menjaga konsistensi `pnpm-lock.yaml`.
-- **Keamanan Kredensial:**
-  - Jangan pernah menyimpan API key, Supabase service role keys, atau connection string database di dalam source code publik.
-  - Gunakan `.env.local` dan definisikan kontrak variabelnya di `.env.example` serta dokumentasikan di `docs/infrastructure/environment.md`.
+- **Keamanan Kredensial & Variabel Lingkungan:**
+  - Jangan pernah menyimpan secret keys, token, atau kredensial sensitif di dalam kode client-side publik.
+  - Gunakan `.env` / `.env.local` dan definisikan kontrak variabelnya di `.env.example`:
+    - `NEXT_PUBLIC_APP_URL`
+    - `NEXT_PUBLIC_API_URL`
+    - `API_INTERNAL_URL`
 
 ---
 
@@ -39,4 +43,3 @@ Dokumen ini mendefinisikan aturan operasional wajib bagi AI Agent yang bekerja p
 - Lakukan perubahan secara bertahap dan terisolasi per fitur (modular).
 - Gunakan format conventional commits (e.g., `feat:`, `fix:`, `docs:`, `refactor:`, `chore:`).
 - Jangan menghapus komentar atau kode yang sudah ada tanpa alasan yang jelas atau konfirmasi dari pengguna.
-

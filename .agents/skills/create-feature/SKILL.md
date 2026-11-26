@@ -1,11 +1,11 @@
 ---
 name: create-feature
-description: Workflow standar untuk merancang, mendokumentasikan, dan mengimplementasikan fitur baru di Kemas Prasasti 2025.
+description: Workflow standar untuk merancang, mendokumentasikan, dan mengimplementasikan fitur baru di Frontend Kemas Prasasti 2025 (fe-app).
 ---
 
-# Skill: Create Feature Workflow
+# Skill: Create Feature Workflow (Frontend)
 
-Workflow ini digunakan oleh Agent atau developer ketika akan menambahkan fitur baru (misalnya: modul CMS Blog, sistem Pendaftaran Lomba, Dashboard Verifikasi Peserta).
+Workflow ini digunakan oleh Agent atau developer ketika akan menambahkan fitur baru di `fe-app` (misalnya: modul CMS Blog, sistem Pendaftaran Lomba, Dashboard Verifikasi Peserta).
 
 ---
 
@@ -23,35 +23,32 @@ Workflow ini digunakan oleh Agent atau developer ketika akan menambahkan fitur b
 ---
 
 ## Tahap 2: Definisi Tipe Data & Skema Validasi
-1. Tentukan TypeScript interface di folder `types/`.
-2. Buat skema validasi Zod di folder `schema/`:
+1. Tentukan TypeScript interface / DTO di folder `types/` atau `modules/<domain>/infrastructure/*.table.ts`.
+2. Buat skema validasi Zod di `schema/` atau `modules/<domain>/domain/*.schema.ts`:
    - Validasi setiap input (panjang karakter, format email/telepon, tipe file berkas).
    - Pastikan pesan validasi berbahasa Indonesia yang jelas.
-3. Jika fitur membutuhkan entitas atau endpoint baru, koordinasikan perubahan skema dan REST API pada backend (`be-app`). Dokumentasikan spesifikasi endpoint dan model datanya di `docs/`.
+3. Sinkronisasikan kontrak payload dan response dengan endpoint backend (`be-app`).
 
 ---
 
-## Tahap 3: Implementasi Backend / Data Service
-1. Buat service / data access function di `lib/` atau `services/`.
-2. Jika menggunakan Server Actions, pastikan:
-   - Validasi otentikasi/otorisasi pengguna (jika route terproteksi).
+## Tahap 3: Implementasi Data Service & Server Actions (BFF)
+1. Buat repository data access di `modules/<domain>/infrastructure/*.repository.ts` yang memanggil `be-app` via `apiClient` (`lib/api-client.ts`).
+2. Jika menggunakan Server Actions (`modules/<domain>/application/`):
+   - Validasi otentikasi/otorisasi sesi jika route terproteksi via token cookie `kp_auth_token`.
    - Validasi payload dengan `schema.safeParse()`.
-   - Error handling yang konsisten (mengembalikan format `{ success: boolean, data?: T, error?: string }`).
+   - Error handling yang konsisten (mengembalikan format `{ success: boolean, message?: string, data?: T, error?: string }`).
 
 ---
 
-## Tahap 4: Implementasi UI & Komponen
+## Tahap 4: Implementasi UI & Komponen (Shadcn UI & Sonner)
 1. Pisahkan antara Server Component (pengambil data) dan Client Component (interaksi form/tombol).
-2. Manfaatkan komponen dari `components/ui/` (Shadcn/Radix UI).
-3. Berikan feedback interaktif kepada pengguna:
-   - Loading indicator saat submit.
-   - Toast/Alert notifikasi saat berhasil atau gagal.
-   - Validasi error per-field form.
+2. Manfaatkan komponen resmi Shadcn UI (`components/ui/`). Jika belum ada: `pnpm dlx shadcn@latest add <component>`.
+3. Gunakan standar Data Table Shadcn UI (`@tanstack/react-table`) untuk tampilan data tabular di dashboard.
+4. Tampilkan notifikasi umpan balik menggunakan **Sonner Toast** di posisi **kanan atas (`top-right`)**.
 
 ---
 
 ## Tahap 5: Verifikasi & Sinkronisasi
-1. Uji alur positif (happy path) dan alur negatif (validasi gagal, error koneksi).
-2. Pastikan tidak ada lint error atau type error (`pnpm lint`).
+1. Uji alur positif (*happy path*) dan alur negatif (*validasi gagal, error koneksi backend*).
+2. Pastikan tidak ada lint error atau type error (`pnpm build` atau `pnpm lint`).
 3. Update dokumentasi roadmap / checklist di `docs/feateures/` dan `AGENTS.md`.
-
