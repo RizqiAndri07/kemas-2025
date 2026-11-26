@@ -26,25 +26,100 @@ export async function loginAction(
       };
     }
 
-    const res = await apiClient<{ token: string; user: SessionUserInfo }>("auth/login", {
+    const apiUrl =
+      process.env.API_INTERNAL_URL ||
+      process.env.NEXT_PUBLIC_API_URL ||
+      "http://localhost:5000/api";
+
+    // 1. Coba login melalui endpoint Better Auth
+    const authRes = await fetch(`${apiUrl}/auth/sign-in/email`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        email: validated.data.email.trim().toLowerCase(),
+        password: validated.data.password,
+      }),
+      cache: "no-store",
+    });
+
+    if (authRes.ok) {
+      const data = await authRes.json();
+      const token = data.token;
+      const user = data.user;
+
+      const cookieStore = await cookies();
+      const isProd = process.env.NODE_ENV === "production";
+
+      // Simpan session cookie Better Auth (7 hari)
+      cookieStore.set("better-auth.session_token", token, {
+        path: "/",
+        httpOnly: true,
+        sameSite: "lax",
+        maxAge: 7 * 24 * 60 * 60,
+        secure: isProd,
+      });
+
+      // Simpan kp_auth_token untuk backward compatibility
+      cookieStore.set("kp_auth_token", token, {
+        path: "/",
+        httpOnly: true,
+        sameSite: "lax",
+        maxAge: 7 * 24 * 60 * 60,
+        secure: isProd,
+      });
+
+      try {
+        revalidatePath("/", "layout");
+        revalidatePath("/dashboard");
+      } catch {
+        // Abaikan
+      }
+
+      return {
+        success: true,
+        message: "Login berhasil!",
+        data: {
+          user: {
+            id: user.id,
+            email: user.email,
+            username: user.username || user.name || "user",
+            role: user.role || "ADMIN",
+          },
+        },
+      };
+    }
+
+    // 2. Fallback: Coba login melalui endpoint /auth/login legacy bila diperlukan
+    const legacyRes = await apiClient<{ token: string; user: SessionUserInfo }>("auth/login", {
       method: "POST",
       body: JSON.stringify(validated.data),
     });
 
-    if (!res.success || !res.data) {
+    if (!legacyRes.success || !legacyRes.data) {
+      // Ambil pesan error dari Better Auth jika ada
+      let errorMsg = legacyRes.error || "Login gagal diproses";
+      try {
+        const errJson = await authRes.json();
+        if (errJson.message || errJson.error) {
+          errorMsg = errJson.message || errJson.error;
+        }
+      } catch {}
+
       return {
         success: false,
-        error: res.error || "Login gagal diproses",
+        error: errorMsg,
       };
     }
 
-    // Pasang cookie kp_auth_token di Next.js (berlaku 12 jam)
+    // Pasang cookie kp_auth_token di Next.js
     const cookieStore = await cookies();
-    cookieStore.set("kp_auth_token", res.data.token, {
+    cookieStore.set("kp_auth_token", legacyRes.data.token, {
       path: "/",
       httpOnly: true,
       sameSite: "lax",
-      maxAge: 12 * 60 * 60, // 12 jam
+      maxAge: 12 * 60 * 60,
       secure: process.env.NODE_ENV === "production",
     });
 
@@ -57,9 +132,9 @@ export async function loginAction(
 
     return {
       success: true,
-      message: res.message || "Login berhasil!",
+      message: legacyRes.message || "Login berhasil!",
       data: {
-        user: res.data.user,
+        user: legacyRes.data.user,
       },
     };
   } catch (error) {
@@ -73,8 +148,31 @@ export async function loginAction(
 
 export async function logoutAction(): Promise<ActionResult<void>> {
   try {
-    await apiClient("auth/logout", { method: "POST" });
     const cookieStore = await cookies();
+    const token =
+      cookieStore.get("better-auth.session_token")?.value ||
+      cookieStore.get("kp_auth_token")?.value;
+
+    const apiUrl =
+      process.env.API_INTERNAL_URL ||
+      process.env.NEXT_PUBLIC_API_URL ||
+      "http://localhost:5000/api";
+
+    if (token) {
+      await fetch(`${apiUrl}/auth/sign-out`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Cookie: `better-auth.session_token=${token}`,
+        },
+        cache: "no-store",
+      }).catch(() => {});
+    }
+
+    await apiClient("auth/logout", { method: "POST" }).catch(() => {});
+
+    cookieStore.delete("better-auth.session_token");
+    cookieStore.delete("__Secure-better-auth.session_token");
     cookieStore.delete("kp_auth_token");
 
     try {
@@ -99,6 +197,38 @@ export async function logoutAction(): Promise<ActionResult<void>> {
 
 export async function getCurrentSessionUser(): Promise<SessionUserInfo | null> {
   try {
+    const cookieStore = await cookies();
+    const token =
+      cookieStore.get("better-auth.session_token")?.value ||
+      cookieStore.get("kp_auth_token")?.value;
+
+    if (!token) return null;
+
+    const apiUrl =
+      process.env.API_INTERNAL_URL ||
+      process.env.NEXT_PUBLIC_API_URL ||
+      "http://localhost:5000/api";
+
+    const sessionRes = await fetch(`${apiUrl}/auth/get-session`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        Cookie: `better-auth.session_token=${token}`,
+      },
+      cache: "no-store",
+    });
+
+    if (sessionRes.ok) {
+      const data = await sessionRes.json();
+      if (data && data.user) {
+        return {
+          id: data.user.id,
+          email: data.user.email,
+          username: data.user.username || data.user.name || "user",
+          role: data.user.role || "ADMIN",
+        };
+      }
+    }
+
     const res = await apiClient<SessionUserInfo>("auth/me");
     if (!res.success || !res.data) {
       return null;

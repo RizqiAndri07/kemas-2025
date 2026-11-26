@@ -48,7 +48,10 @@ Workflow ini digunakan oleh Agent atau developer ketika akan menambahkan fitur b
 
 ---
 
-## Tahap 5: Verifikasi & Sinkronisasi
+## Tahap 5: Verifikasi & Sinkronisasi Dokumentasi
 1. Uji alur positif (*happy path*) dan alur negatif (*validasi gagal, error koneksi backend*).
 2. Pastikan tidak ada lint error atau type error (`pnpm build` atau `pnpm lint`).
-3. Update dokumentasi roadmap / checklist di `docs/feateures/` dan `AGENTS.md`.
+3. **Dokumentasi Ganda Wajib:**
+   - Tulis/update dokumen spesifikasi fitur di `docs/feateures/<nama-fitur>.md`.
+   - Pastikan dokumentasi endpoint API di `be-app/docs/api/<nama-fitur>-api.md` sudah disinkronkan.
+   - Update checklist di `AGENTS.md`.

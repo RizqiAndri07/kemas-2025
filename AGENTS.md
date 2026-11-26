@@ -36,6 +36,7 @@ Selamat datang di repository **Kemas Prasasti 2025 Frontend Application (`fe-app
 - **Validation Engine:** Zod (Single source of truth)
 - **Rich Text Editor:** BlockNote (`@blocknote/react`, `@blocknote/shadcn`)
 - **Feedback & Notifications:** Sonner Toast (`sonner` di posisi `top-right`)
+- **Authentication:** Better Auth Client (`better-auth/react`), Next.js Middleware Session Guard, Bearer Relay
 - **Backend Integration:** RESTful API Client via Express.js (`be-app`) & Server Actions (BFF)
 - **Package Manager:** `pnpm`
 
@@ -85,6 +86,11 @@ Sebelum melakukan tindakan apa pun di repository `fe-app`, AI Agent **WAJIB** me
 9. **MANAJEMEN SESI & ROUTE GUARD:**
    - Token otentikasi disimpan dalam cookie aman `kp_auth_token` (HTTP-Only, masa berlaku 12 jam).
    - Proteksi rute `/dashboard/*` dilakukan oleh `middleware.ts` yang memvalidasi token sesi ke endpoint `GET /api/auth/me` pada `be-app`.
+10. **MANDATORY FULLSTACK SYNC & DUAL DOCUMENTATION:**
+    - Setiap kali membuat atau memodifikasi fitur baru, **WAJIB** mengimplementasikan integrasi penuh antara antarmuka UI (`fe-app`) dan endpoint API riil (`be-app`), **dilarang membuat mockup UI tanpa backend yang berfungsi**.
+    - **Wajib menulis dokumentasi di kedua sisi:**
+      - Dokumentasikan UI/UX, alur user flow, dan validasi form di [fe-app/docs/feateures/](file:///home/kinggu/Documents/Project/kemas/fe-app/docs/feateures/).
+      - Pastikan spesifikasi endpoint API dan schema datanya tercatat serasi di [be-app/docs/api/](file:///home/kinggu/Documents/Project/kemas/be-app/docs/api/).
 
 ---
 

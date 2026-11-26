@@ -20,12 +20,18 @@ export interface ApiResponse<T = any> {
 export async function getAuthToken(): Promise<string | undefined> {
   try {
     const cookieStore = await cookies();
-    return cookieStore.get("kp_auth_token")?.value;
+    return (
+      cookieStore.get("better-auth.session_token")?.value ||
+      cookieStore.get("__Secure-better-auth.session_token")?.value ||
+      cookieStore.get("kp_auth_token")?.value
+    );
   } catch {
     // Dipanggil di browser / client context
     if (typeof document !== "undefined") {
-      const match = document.cookie.match(/kp_auth_token=([^;]+)/);
-      return match ? match[1] : undefined;
+      const match = document.cookie.match(
+        /(?:better-auth\.session_token|__Secure-better-auth\.session_token|kp_auth_token)=([^;]+)/
+      );
+      return match ? decodeURIComponent(match[1]) : undefined;
     }
     return undefined;
   }
@@ -39,10 +45,13 @@ export async function apiClient<T = any>(
 
   const headers = new Headers(options.headers || {});
 
-  // Ambil token dan pasang di header Authorization
+  // Ambil token dan pasang di header Authorization dan Cookie
   const token = await getAuthToken();
   if (token && !headers.has("Authorization")) {
     headers.set("Authorization", `Bearer ${token}`);
+  }
+  if (token && !headers.has("Cookie")) {
+    headers.set("Cookie", `better-auth.session_token=${token}; kp_auth_token=${token}`);
   }
 
   // Jika body bukan FormData, pasang header Content-Type application/json

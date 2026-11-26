@@ -30,21 +30,42 @@ export async function middleware(request: NextRequest) {
     });
   }
 
-  const authToken = request.cookies.get("kp_auth_token")?.value;
+  const authToken =
+    request.cookies.get("better-auth.session_token")?.value ||
+    request.cookies.get("__Secure-better-auth.session_token")?.value ||
+    request.cookies.get("kp_auth_token")?.value;
+
   const apiUrl =
     process.env.API_INTERNAL_URL ||
     process.env.NEXT_PUBLIC_API_URL ||
     "http://localhost:5000/api";
 
-  // Helper verifikasi token ke be-app
+  // Helper verifikasi token ke be-app (Better Auth session atau JWT fallback)
   const verifyToken = async (token: string): Promise<boolean> => {
     try {
-      const res = await fetch(`${apiUrl}/auth/me`, {
+      // 1. Coba verifikasi via Better Auth get-session
+      const sessionRes = await fetch(`${apiUrl}/auth/get-session`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Cookie: `better-auth.session_token=${token}`,
+        },
+        cache: "no-store",
+      });
+
+      if (sessionRes.ok) {
+        const sessionData = await sessionRes.json();
+        if (sessionData && sessionData.user) {
+          return true;
+        }
+      }
+
+      // 2. Fallback verifikasi via /auth/me
+      const meRes = await fetch(`${apiUrl}/auth/me`, {
         headers: { Authorization: `Bearer ${token}` },
         cache: "no-store",
       });
-      const data = await res.json();
-      return res.ok && data.success === true;
+      const data = await meRes.json();
+      return meRes.ok && data.success === true;
     } catch {
       return false;
     }
@@ -66,6 +87,8 @@ export async function middleware(request: NextRequest) {
       url.searchParams.set("next", pathname);
       url.searchParams.set("expired", "1");
       const redirectRes = NextResponse.redirect(url);
+      redirectRes.cookies.set("better-auth.session_token", "", { path: "/", maxAge: 0 });
+      redirectRes.cookies.set("__Secure-better-auth.session_token", "", { path: "/", maxAge: 0 });
       redirectRes.cookies.set("kp_auth_token", "", { path: "/", maxAge: 0 });
       return redirectRes;
     }
