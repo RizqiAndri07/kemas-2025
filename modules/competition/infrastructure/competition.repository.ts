@@ -1,5 +1,6 @@
 import { apiClient } from "@/lib/api-client";
-import { CompetitionSelect, CompetitionInsert } from "./competition.table";
+import { CompetitionSelect, CompetitionDetailSelect, CompetitionInsert } from "./competition.table";
+import { CompetitionFormSelect } from "./competition-form.table";
 import { CompetitionStatus } from "../domain/competition-status.enum";
 
 export async function getAllCompetitions(): Promise<CompetitionSelect[]> {
@@ -7,8 +8,13 @@ export async function getAllCompetitions(): Promise<CompetitionSelect[]> {
   return res.data || [];
 }
 
-export async function getCompetitionById(id: string): Promise<CompetitionSelect | null> {
-  const res = await apiClient<CompetitionSelect>(`competitions/${id}`);
+export async function getCompetitionById(id: string): Promise<CompetitionDetailSelect | null> {
+  const res = await apiClient<CompetitionDetailSelect>(`competitions/${id}`);
+  return res.data || null;
+}
+
+export async function getActiveOrCreateForm(competitionId: string): Promise<CompetitionFormSelect | null> {
+  const res = await apiClient<CompetitionFormSelect>(`competitions/${competitionId}/form/active-or-create`);
   return res.data || null;
 }
 

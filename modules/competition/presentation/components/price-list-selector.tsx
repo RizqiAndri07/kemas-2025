@@ -22,6 +22,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { PriceListItem } from "../../infrastructure/competition.table";
 
 interface PriceListSelectorProps {
@@ -52,12 +59,14 @@ export function PriceListSelector({
   // State untuk penambahan tier baru
   const [newName, setNewName] = useState("");
   const [newPrice, setNewPrice] = useState("");
+  const [newStatus, setNewStatus] = useState<"ACTIVE" | "EXPIRED">("ACTIVE");
   const [addError, setAddError] = useState<string | null>(null);
 
   // State untuk inline editing tier yang ada
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editName, setEditName] = useState("");
   const [editPrice, setEditPrice] = useState("");
+  const [editStatus, setEditStatus] = useState<"ACTIVE" | "EXPIRED">("ACTIVE");
 
   // Temukan item terpilih saat ini
   const selectedItem =
@@ -66,6 +75,7 @@ export function PriceListSelector({
       id: "default",
       name: "Normal Price",
       price: 0,
+      status: "ACTIVE",
     };
 
   // Handler: Pilih tier aktif
@@ -80,6 +90,7 @@ export function PriceListSelector({
     setEditingId(item.id);
     setEditName(item.name);
     setEditPrice(String(item.price));
+    setEditStatus(item.status || "ACTIVE");
   };
 
   // Handler: Batal inline edit
@@ -88,6 +99,7 @@ export function PriceListSelector({
     setEditingId(null);
     setEditName("");
     setEditPrice("");
+    setEditStatus("ACTIVE");
   };
 
   // Handler: Simpan inline edit
@@ -101,7 +113,12 @@ export function PriceListSelector({
 
     const updatedList = priceList.map((item) => {
       if (item.id === id) {
-        return { ...item, name: cleanName, price: parsedPrice };
+        return {
+          ...item,
+          name: cleanName,
+          price: parsedPrice,
+          status: editStatus,
+        };
       }
       return item;
     });
@@ -133,9 +150,10 @@ export function PriceListSelector({
     }
   };
 
-  // Handler: Tambah tier baru
-  const handleAddNewTier = (e: React.FormEvent) => {
+  // Handler: Tambah tier baru (Bukan submit form, cukup tutup popover/modal saja!)
+  const handleAddNewTier = (e: React.MouseEvent) => {
     e.preventDefault();
+    e.stopPropagation();
     setAddError(null);
 
     const cleanName = newName.trim();
@@ -156,17 +174,24 @@ export function PriceListSelector({
       id: newId,
       name: cleanName,
       price: parsedPrice,
+      status: newStatus,
     };
 
     const updatedList = [...priceList, newItem];
     onChangePriceList(updatedList);
 
-    // Otomatis aktifkan tier baru yang baru saja ditambahkan
-    onSelectPrice(newId, parsedPrice);
+    // Otomatis aktifkan tier baru jika statusnya ACTIVE
+    if (newStatus === "ACTIVE") {
+      onSelectPrice(newId, parsedPrice);
+    }
 
-    // Reset input
+    // Reset input form
     setNewName("");
     setNewPrice("");
+    setNewStatus("ACTIVE");
+
+    // Tutup popover modal
+    setOpen(false);
   };
 
   return (
@@ -206,6 +231,11 @@ export function PriceListSelector({
               >
                 {selectedItem.price === 0 ? "Gratis (Rp 0)" : formatRupiah(selectedItem.price)}
               </Badge>
+              {selectedItem.status === "EXPIRED" && (
+                <Badge variant="secondary" className="text-[10px] bg-destructive/10 text-destructive">
+                  Expired
+                </Badge>
+              )}
             </div>
           </div>
           <ChevronDown className="h-4 w-4 shrink-0 opacity-50 ml-2" />
@@ -222,7 +252,7 @@ export function PriceListSelector({
               Kelola Price List Event
             </h4>
             <p className="text-[11px] text-muted-foreground mt-0.5">
-              Pilih harga yang sedang berlaku, edit nominal, atau tambahkan gelombang presale.
+              Pilih harga yang sedang berlaku, edit nominal, atur status (aktif/expired), atau tambah tier baru.
             </p>
           </div>
 
@@ -232,14 +262,15 @@ export function PriceListSelector({
               const isSelected = item.id === selectedPriceId;
               const isEditing = editingId === item.id;
               const isDefaultTier = item.id === "default" || item.id === priceList[0]?.id;
+              const isExpired = item.status === "EXPIRED";
 
               if (isEditing) {
                 return (
                   <div
                     key={item.id}
-                    className="p-2 rounded-lg border border-primary/30 bg-primary/5 space-y-2"
+                    className="p-2.5 rounded-lg border border-primary/30 bg-primary/5 space-y-2"
                   >
-                    <div className="grid grid-cols-2 gap-1.5">
+                    <div className="grid grid-cols-2 gap-2">
                       <div>
                         <Label className="text-[10px] text-muted-foreground">Nama Tier</Label>
                         <Input
@@ -263,13 +294,36 @@ export function PriceListSelector({
                         />
                       </div>
                     </div>
-                    <div className="flex justify-end gap-1.5">
+
+                    <div>
+                      <Label className="text-[10px] text-muted-foreground">Status Tier</Label>
+                      <Select
+                        value={editStatus}
+                        onValueChange={(val) => {
+                          if (val === "ACTIVE" || val === "EXPIRED") setEditStatus(val);
+                        }}
+                      >
+                        <SelectTrigger className="h-8 text-xs bg-background">
+                          <SelectValue placeholder="Pilih status" />
+                        </SelectTrigger>
+                        <SelectContent className="z-50">
+                          <SelectItem value="ACTIVE" className="text-xs">
+                            Aktif
+                          </SelectItem>
+                          <SelectItem value="EXPIRED" className="text-xs text-destructive">
+                            Expired
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="flex justify-end gap-1.5 pt-1">
                       <Button
                         type="button"
                         size="sm"
                         variant="ghost"
                         onClick={handleCancelEdit}
-                        className="h-6 px-2 text-[11px]"
+                        className="h-7 px-2.5 text-xs"
                       >
                         <X className="h-3 w-3 mr-1" />
                         Batal
@@ -278,7 +332,7 @@ export function PriceListSelector({
                         type="button"
                         size="sm"
                         onClick={(e) => handleSaveEdit(e, item.id)}
-                        className="h-6 px-2 text-[11px]"
+                        className="h-7 px-2.5 text-xs font-semibold"
                       >
                         <Check className="h-3 w-3 mr-1" />
                         Simpan
@@ -308,13 +362,26 @@ export function PriceListSelector({
                     >
                       {isSelected && <Check className="h-2.5 w-2.5 stroke-[3]" />}
                     </div>
-                    <span className="truncate">{item.name}</span>
+                    <span className={`truncate ${isExpired ? "line-through text-muted-foreground opacity-70" : ""}`}>
+                      {item.name}
+                    </span>
                   </div>
 
                   <div className="flex items-center gap-1.5 shrink-0 ml-2">
                     <Badge
+                      variant={isExpired ? "secondary" : "outline"}
+                      className={`text-[10px] px-1.5 py-0 ${
+                        isExpired
+                          ? "bg-destructive/10 text-destructive border-destructive/20"
+                          : "text-emerald-600 border-emerald-500/30"
+                      }`}
+                    >
+                      {isExpired ? "Expired" : "Aktif"}
+                    </Badge>
+
+                    <Badge
                       variant={isSelected ? "default" : "secondary"}
-                      className="text-[11px] font-mono px-2 py-0"
+                      className={`text-[11px] font-mono px-2 py-0 ${isExpired ? "line-through opacity-70" : ""}`}
                     >
                       {item.price === 0 ? "Rp 0" : formatRupiah(item.price)}
                     </Badge>
@@ -326,7 +393,7 @@ export function PriceListSelector({
                       size="icon"
                       onClick={(e) => handleStartEdit(e, item)}
                       className="h-6 w-6 text-muted-foreground hover:text-foreground opacity-60 group-hover:opacity-100"
-                      title="Edit Nama / Harga"
+                      title="Edit Nama / Harga / Status"
                     >
                       <Pencil className="h-3 w-3" />
                     </Button>
@@ -352,8 +419,8 @@ export function PriceListSelector({
 
           <Separator />
 
-          {/* Form Tambah Tier Baru */}
-          <form onSubmit={handleAddNewTier} className="p-3 bg-muted/20 space-y-2.5">
+          {/* Form Tambah Tier Baru (Bukan tag <form> agar tidak men-trigger submit parent form) */}
+          <div className="p-3 bg-muted/20 space-y-2.5">
             <div className="flex items-center justify-between">
               <span className="text-[11px] font-semibold text-foreground">
                 Tambah Price List / Presale Baru
@@ -367,8 +434,9 @@ export function PriceListSelector({
               </div>
             )}
 
-            <div className="grid grid-cols-5 gap-1.5">
-              <div className="col-span-3">
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <Label className="text-[10px] text-muted-foreground">Nama Tier</Label>
                 <Input
                   value={newName}
                   onChange={(e) => setNewName(e.target.value)}
@@ -376,7 +444,8 @@ export function PriceListSelector({
                   className="h-8 text-xs bg-background"
                 />
               </div>
-              <div className="col-span-2">
+              <div>
+                <Label className="text-[10px] text-muted-foreground">Harga (Rp)</Label>
                 <Input
                   type="number"
                   min="0"
@@ -389,16 +458,39 @@ export function PriceListSelector({
               </div>
             </div>
 
+            <div>
+              <Label className="text-[10px] text-muted-foreground">Status Tier</Label>
+              <Select
+                value={newStatus}
+                onValueChange={(val) => {
+                  if (val === "ACTIVE" || val === "EXPIRED") setNewStatus(val);
+                }}
+              >
+                <SelectTrigger className="h-8 text-xs bg-background">
+                  <SelectValue placeholder="Pilih status" />
+                </SelectTrigger>
+                <SelectContent className="z-50">
+                  <SelectItem value="ACTIVE" className="text-xs">
+                    Aktif
+                  </SelectItem>
+                  <SelectItem value="EXPIRED" className="text-xs text-destructive">
+                    Expired
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
             <Button
-              type="submit"
+              type="button"
               variant="outline"
               size="sm"
-              className="w-full h-8 text-xs font-medium cursor-pointer"
+              onClick={handleAddNewTier}
+              className="w-full h-8 text-xs font-semibold cursor-pointer"
             >
               <Plus className="h-3.5 w-3.5 mr-1" />
               Tambahkan ke Price List
             </Button>
-          </form>
+          </div>
         </PopoverContent>
       </Popover>
     </div>

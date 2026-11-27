@@ -1,4 +1,4 @@
-import { cookies } from "next/headers";
+import { cookies, headers as nextHeaders } from "next/headers";
 
 const API_BASE_URL =
   process.env.API_INTERNAL_URL ||
@@ -52,6 +52,21 @@ export async function apiClient<T = any>(
   }
   if (token && !headers.has("Cookie")) {
     headers.set("Cookie", `better-auth.session_token=${token}; kp_auth_token=${token}`);
+  }
+
+  // Teruskan IP dan User-Agent client ke backend untuk rate limiting & audit log
+  try {
+    const reqHeaders = await nextHeaders();
+    const forwarded = reqHeaders.get("x-forwarded-for") || reqHeaders.get("x-real-ip");
+    if (forwarded && !headers.has("x-forwarded-for")) {
+      headers.set("x-forwarded-for", forwarded);
+    }
+    const userAgent = reqHeaders.get("user-agent");
+    if (userAgent && !headers.has("user-agent")) {
+      headers.set("user-agent", userAgent);
+    }
+  } catch {
+    // Dipanggil di client-side component atau context non-server
   }
 
   // Jika body bukan FormData, pasang header Content-Type application/json

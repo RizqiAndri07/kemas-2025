@@ -1,125 +1,176 @@
-import { IDataEvent } from "@/types/event.interface";
-import { Calendar, Sparkles, SquareArrowOutUpRight, Users } from "lucide-react";
-// import Image from "next/image";
 import Link from "next/link";
-import Image from "next/image";
+import { CompetitionSelect } from "@/modules/competition/infrastructure/competition.table";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+  CardFooter,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  Calendar,
+  Coins,
+  FileText,
+  Users,
+  ArrowRight,
+  UserCheck,
+} from "lucide-react";
+
 interface EventCardProps {
-  event: IDataEvent;
+  competition: CompetitionSelect;
 }
-const EventCard = ({ event }: EventCardProps) => {
+
+function formatDate(date: string | Date | undefined): string {
+  if (!date) return "-";
+  try {
+    return new Date(date).toLocaleDateString("id-ID", {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+    });
+  } catch {
+    return String(date);
+  }
+}
+
+function formatFee(fee: number | undefined, priceList?: any[]): string {
+  if (fee === 0 || (priceList && priceList.length === 1 && priceList[0].price === 0)) {
+    return "Gratis (Free Entry)";
+  }
+  if (fee !== undefined && fee !== null) {
+    return `Rp ${Number(fee).toLocaleString("id-ID")}`;
+  }
+  return "Gratis";
+}
+
+const EventCard = ({ competition }: EventCardProps) => {
+  const isOpen = competition.status === "OPEN";
+  const formattedFee = formatFee(competition.fee, competition.priceList);
+  const regStart = formatDate(competition.registrationStartDate);
+  const regEnd = formatDate(competition.registrationEndDate);
+  const eventStart = formatDate(competition.eventStartDate);
+  const eventEnd = formatDate(competition.eventEndDate);
+
+  const documentCount = competition.documents?.length || (competition.guidebookUrl ? 1 : 0);
+
   return (
-    <div className="bg-background rounded-2xl flex flex-col ">
-      <div className=" flex-1 min-h-[200px] p-6 flex flex-col justify-center items-center h-36 md:h-60 text-center relative overflow-hidden bg-linear-to-r rounded-t-2xl from-primary/20 to-accent/20">
-        <div className="absolute top-0 right-0 w-32 h-32 rounded-full blur-2xl opacity-30" />
-        {event.typography ? (
-          <>
-            <Image
-              src={event.typography}
-              alt={event.name}
-              width={200}
-              height={200}
-            />
-          </>
-        ) : (
-          <>
-            <div className="text-6xl mb-3 relative z-10">{event.logo}</div>
-            <h5 className="relative z-10 text-primary">{event.name}</h5>
-          </>
-        )}
-      </div>
+    <Card className="flex flex-col justify-between hover:shadow-md transition-shadow border-border/80">
+      <div>
+        <CardHeader className="space-y-3 pb-3">
+          <div className="flex items-center justify-between gap-2">
+            <Badge variant="outline" className="text-[11px] font-semibold tracking-wide uppercase">
+              {competition.type}
+            </Badge>
+            <Badge
+              variant={isOpen ? "default" : "secondary"}
+              className={isOpen ? "bg-emerald-600 hover:bg-emerald-700 text-white text-[11px]" : "text-[11px]"}
+            >
+              {isOpen ? "Pendaftaran Dibuka" : "Pendaftaran Ditutup"}
+            </Badge>
+          </div>
 
-      {/* Card Body */}
-      <div className="p-6 flex-2 flex flex-col justify-between">
-        <p className="body-xs max-h-[60px] font-poppins text-left flex-1 line-clamp-3 text-foreground/60 mb-6 ">
-          {event.description}
-        </p>
+          <div className="space-y-1">
+            <CardTitle className="text-xl font-heading font-bold text-foreground line-clamp-1">
+              {competition.name}
+            </CardTitle>
+            <CardDescription className="text-xs text-muted-foreground line-clamp-2 leading-relaxed min-h-[34px]">
+              {competition.description || "Kompetisi resmi Kemas Prasasti 2026."}
+            </CardDescription>
+          </div>
+        </CardHeader>
 
-        {/* Info */}
-        <div className="flex flex-col gap-3">
-          {event.open_registration && (
-            <div className="flex items-start gap-2 ">
-              <Calendar className="text-secondary" />
-              <div className="body-xs space-y-2 w-full text-left">
-                <div className="gap-x-3 flex">
-                  <p className="text-foreground/60">Pendaftaran</p>
+        <CardContent className="space-y-2.5 pb-4 text-xs">
+          {/* Periode Pendaftaran */}
+          <div className="flex items-start gap-2.5 text-muted-foreground">
+            <Calendar className="h-4 w-4 shrink-0 text-primary mt-0.5" />
+            <div>
+              <span className="text-[11px] font-semibold uppercase text-foreground/80 block">
+                Pendaftaran
+              </span>
+              <span>
+                {regStart} - {regEnd}
+              </span>
+            </div>
+          </div>
 
-                  {event.status === "closed" ? (
-                    <span className="bg-red-400 italic text-xs rounded text-white px-3">
-                      Closed
-                    </span>
-                  ) : (
-                    <span className="bg-secondary italic text-xs rounded text-white px-3">
-                      {event.extend}
-                    </span>
-                  )}
-                </div>
-                <p className="">{event.open_registration}</p>
-              </div>
+          {/* Pelaksanaan Event */}
+          <div className="flex items-start gap-2.5 text-muted-foreground">
+            <Calendar className="h-4 w-4 shrink-0 text-secondary mt-0.5" />
+            <div>
+              <span className="text-[11px] font-semibold uppercase text-foreground/80 block">
+                Pelaksanaan
+              </span>
+              <span>
+                {eventStart} - {eventEnd}
+              </span>
+            </div>
+          </div>
+
+          {/* Biaya */}
+          <div className="flex items-start gap-2.5 text-muted-foreground">
+            <Coins className="h-4 w-4 shrink-0 text-amber-500 mt-0.5" />
+            <div>
+              <span className="text-[11px] font-semibold uppercase text-foreground/80 block">
+                Biaya Pendaftaran
+              </span>
+              <span className="font-semibold text-foreground">{formattedFee}</span>
+              {competition.priceList && competition.priceList.length > 1 && (
+                <span className="text-[10px] text-muted-foreground block">
+                  ({competition.priceList.length} pilihan paket biaya)
+                </span>
+              )}
+            </div>
+          </div>
+
+          {/* Kuota */}
+          <div className="flex items-center gap-2.5 text-muted-foreground">
+            <Users className="h-4 w-4 shrink-0 text-sky-600" />
+            <span>
+              {competition.maxQuota
+                ? `Kuota Maksimal: ${competition.maxQuota} peserta`
+                : "Kuota: Terbuka untuk umum"}
+            </span>
+          </div>
+
+          {/* Panduan */}
+          {documentCount > 0 && (
+            <div className="flex items-center gap-2.5 text-muted-foreground text-[11px]">
+              <FileText className="h-4 w-4 shrink-0 text-primary/80" />
+              <span>{documentCount} Berkas panduan & regulasi tersedia</span>
             </div>
           )}
-
-          <div className="flex items-start gap-2">
-            {event.prize && (
-              <>
-                <Sparkles className="text-accent" />
-                <div className="body-sm  w-full text-left">
-                  <p className="text-foreground/60">Biaya</p>
-
-                  {event.prize instanceof Object ? (
-                    Object.entries(event.prize).map(([key, value]) => (
-                      <div key={key} className="flex w-full justify-between">
-                        <p className="body-xs">{key}</p>
-                        <p className="min-w-[100px] body-xs">
-                          {" "}
-                          Rp {value.toLocaleString("id-ID")}
-                        </p>
-                      </div>
-                    ))
-                  ) : (
-                    <p className="body-xs">
-                      {typeof event.prize == "number" ? (
-                        `Rp ${event.prize.toLocaleString("id-ID")}`
-                      ) : (
-                        <span className="italic">{event.prize}</span>
-                      )}
-                    </p>
-                  )}
-                </div>
-              </>
-            )}
-          </div>
-          {event.note && (
-            <p className="text-[9px] px-8 md:text-xs  text-justify text-secondary/80">
-              * {event.note}
-            </p>
-          )}
-        </div>
+        </CardContent>
       </div>
-      {/* button */}
-      <div className="grid px-6 gap-2 py-3">
-        <Link className=" " href={`/competition/${event.id}`}>
-          <Button
-            variant={
-              event.status === "ongoing" ? "gradient" : "outlinesecondary"
-            }
-            className="w-full"
-          >
-            {event.status === "ongoing" ? (
-              <>
-                <Users size={20} />
-                Daftar Sekarang
-              </>
-            ) : (
-              <>
-                Lihat Detail
-                <SquareArrowOutUpRight size={20} />
-              </>
-            )}
+
+      <CardFooter className="pt-3 border-t border-border/60 flex flex-col sm:flex-row gap-2">
+        <Link href={`/competition/${competition.id}`} className="w-full sm:flex-1">
+          <Button variant="outline" size="sm" className="w-full text-xs">
+            <FileText className="h-3.5 w-3.5 mr-1" />
+            Lihat Detail
           </Button>
         </Link>
-      </div>
-    </div>
+
+        {isOpen && !competition.noRegistrationNeeded ? (
+          <Link href={`/competition/${competition.id}/register`} className="w-full sm:flex-1">
+            <Button size="sm" className="w-full text-xs font-semibold">
+              <UserCheck className="h-3.5 w-3.5 mr-1" />
+              Daftar Sekarang
+            </Button>
+          </Link>
+        ) : competition.noRegistrationNeeded ? (
+          <Button variant="secondary" size="sm" disabled className="w-full sm:flex-1 text-xs">
+            Tanpa Registrasi
+          </Button>
+        ) : (
+          <Button variant="secondary" size="sm" disabled className="w-full sm:flex-1 text-xs">
+            Pendaftaran Ditutup
+          </Button>
+        )}
+      </CardFooter>
+    </Card>
   );
 };
 

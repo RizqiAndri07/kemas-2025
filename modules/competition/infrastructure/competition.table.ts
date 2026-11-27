@@ -1,10 +1,13 @@
 import { CompetitionType } from "../domain/competition-type.enum";
 import { CompetitionStatus } from "../domain/competition-status.enum";
+import { CompetitionFormSelect } from "./competition-form.table";
+import { EventDocumentSelect } from "./event-document.table";
 
 export interface PriceListItem {
   id: string;
   name: string;
   price: number;
+  status?: "ACTIVE" | "EXPIRED";
 }
 
 export interface CompetitionSelect {
@@ -26,6 +29,15 @@ export interface CompetitionSelect {
   activeFormId: string | null;
   createdAt: Date;
   updatedAt: Date;
+  documents?: EventDocumentSelect[];
+}
+
+export interface CompetitionDetailSelect extends CompetitionSelect {
+  forms?: CompetitionFormSelect[];
+  contactPersons?: any[];
+  documents?: any[];
+  rundown?: any;
+  bracket?: any;
 }
 
 export interface CompetitionInsert {

@@ -16,6 +16,7 @@ import { CompetitionSelect } from "../../infrastructure/competition.table";
 import { EventDocumentSelect } from "../../infrastructure/event-document.table";
 import { CompetitionCard } from "./competition-card";
 import { AddCompetitionCard } from "./add-competition-card";
+import { CreateCompetitionDialog } from "./create-competition-dialog";
 import { EmptyState } from "@/components/dashboard/EmptyState";
 
 interface CompetitionGridProps {
@@ -27,6 +28,7 @@ export function CompetitionGrid({ competitions, documentsMap = {} }: Competition
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState<string>("ALL");
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
 
   const filteredCompetitions = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -97,13 +99,15 @@ export function CompetitionGrid({ competitions, documentsMap = {} }: Competition
         {/* Create CTA Button */}
         <Button
           size="sm"
-          render={<Link href="/dashboard/competition/create" />}
-          className="shrink-0 cursor-pointer shadow-sm"
+          onClick={() => setIsCreateOpen(true)}
+          className="shrink-0 cursor-pointer shadow-sm gap-1.5"
         >
-          <Plus className="mr-1.5 h-4 w-4" />
-          Tambah Kompetisi
+          <Plus className="h-4 w-4" />
+          <span>Tambah Kompetisi</span>
         </Button>
       </div>
+
+      <CreateCompetitionDialog open={isCreateOpen} onOpenChange={setIsCreateOpen} />
 
       {/* Grid of Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">

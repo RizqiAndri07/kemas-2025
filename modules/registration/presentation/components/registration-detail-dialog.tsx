@@ -40,6 +40,7 @@ import {
   FileCheck2,
   Paperclip,
   Image as ImageIcon,
+  Mail,
 } from "lucide-react";
 
 interface RegistrationDetailDialogProps {
@@ -80,7 +81,19 @@ export function RegistrationDetailDialog({
       });
 
       if (res.success) {
-        toast.success(res.message || "Status pendaftar berhasil diperbarui.");
+        if (res.data?.emailSent) {
+          toast.success(
+            res.message ||
+              `Status pendaftar berhasil diperbarui & email terkirim ke ${res.data.emailRecipient || participantEmail}`
+          );
+        } else if (res.data?.emailError) {
+          toast.warning(
+            res.message || `Status diperbarui, namun email gagal dikirim: ${res.data.emailError}`
+          );
+        } else {
+          toast.success(res.message || "Status pendaftar berhasil diperbarui.");
+        }
+
         if (onStatusUpdated) {
           onStatusUpdated({
             ...registration,
@@ -131,6 +144,34 @@ export function RegistrationDetailDialog({
     timeStyle: "short",
   });
 
+  // Build field label and type map from formSections
+  const fieldMap: Record<string, { label: string; type?: string }> = {};
+  if (Array.isArray(registration.formSections)) {
+    for (const section of registration.formSections) {
+      if (Array.isArray(section.fields)) {
+        for (const field of section.fields) {
+          if (field.id) fieldMap[field.id] = { label: field.label, type: field.type };
+          if (field.name) fieldMap[field.name] = { label: field.label, type: field.type };
+        }
+      }
+    }
+  }
+
+  const renderedKeys = Object.keys(registration.data || {});
+  const unmatchedFiles = (registration.files || []).filter(
+    (f) =>
+      !renderedKeys.includes(f.fieldName) &&
+      !Object.values(registration.data || {}).includes(f.fileName)
+  );
+
+  const participantEmail = registration.email || registration.data?.email || "-";
+  const participantPhone =
+    registration.data?.phone ||
+    registration.data?.phoneNumber ||
+    registration.data?.whatsapp ||
+    registration.data?.noHp ||
+    "-";
+
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-[650px] max-h-[88vh] overflow-y-auto">
@@ -164,6 +205,14 @@ export function RegistrationDetailDialog({
               <span className="font-medium text-foreground">{registration.formTitle}</span>
             </div>
             <div>
+              <span className="text-muted-foreground block text-[11px]">Email Pendaftar:</span>
+              <span className="font-semibold text-foreground truncate block">{participantEmail}</span>
+            </div>
+            <div>
+              <span className="text-muted-foreground block text-[11px]">Nomor WhatsApp / HP:</span>
+              <span className="font-semibold text-foreground truncate block">{participantPhone}</span>
+            </div>
+            <div>
               <span className="text-muted-foreground block text-[11px]">Waktu Pendaftaran:</span>
               <span className="font-medium text-foreground flex items-center gap-1 mt-0.5">
                 <Calendar className="h-3.5 w-3.5 text-muted-foreground" />
@@ -178,7 +227,7 @@ export function RegistrationDetailDialog({
             </div>
           </div>
 
-          {/* Rincian Jawaban Formulir Dinamis */}
+          {/* Rincian Jawaban Formulir Dinamis & Berkas */}
           <div className="space-y-2">
             <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
               <FileText className="h-3.5 w-3.5 text-primary" />
@@ -203,82 +252,112 @@ export function RegistrationDetailDialog({
                     displayValue = String(value);
                   }
 
-                  // Label yang diformat dari key (e.g. nama_lengkap -> Nama Lengkap)
-                  const formattedLabel = key
-                    .replace(/([A-Z])/g, " $1")
-                    .replace(/_/g, " ")
-                    .replace(/\b\w/g, (c) => c.toUpperCase());
+                  // Label yang diformat dari mapping fieldMap atau clean key
+                  let formattedLabel = fieldMap[key]?.label;
+                  if (!formattedLabel) {
+                    formattedLabel = key
+                      .replace(/^field_[\d_]+[a-z0-9]+/i, "Field")
+                      .replace(/([A-Z])/g, " $1")
+                      .replace(/_/g, " ")
+                      .replace(/\b\w/g, (c) => c.toUpperCase());
+                  }
+
+                  // Check whether this value corresponds to an uploaded file
+                  const matchedFile = (registration.files || []).find(
+                    (f) =>
+                      f.fieldName === key ||
+                      f.fileName === value ||
+                      (typeof value === "string" && (value.includes(f.fileName) || f.fileName.includes(value)))
+                  );
 
                   return (
                     <div
                       key={key}
                       className="px-4 py-2.5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 text-xs hover:bg-muted/20"
                     >
-                      <span className="font-medium text-muted-foreground sm:w-1/3">
+                      <span className="font-medium text-muted-foreground sm:w-1/3 capitalize">
                         {formattedLabel}
                       </span>
-                      <span className="font-semibold text-foreground sm:w-2/3 break-words">
-                        {displayValue}
-                      </span>
+                      <div className="sm:w-2/3 break-words font-medium text-foreground">
+                        {matchedFile ? (
+                          <a
+                            href={matchedFile.fileUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center"
+                          >
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              className="h-7 gap-1.5 text-xs font-medium cursor-pointer border-border hover:bg-primary/10 hover:text-primary transition-colors"
+                            >
+                              {matchedFile.fileType?.startsWith("image/") ||
+                              matchedFile.fileName?.match(/\.(jpg|jpeg|png|webp)$/i) ? (
+                                <ImageIcon className="h-3.5 w-3.5 text-primary" />
+                              ) : (
+                                <FileText className="h-3.5 w-3.5 text-primary" />
+                              )}
+                              <span className="truncate max-w-[200px]">
+                                {matchedFile.fileName || displayValue}
+                              </span>
+                              <ExternalLink className="h-3 w-3 text-muted-foreground ml-1" />
+                            </Button>
+                          </a>
+                        ) : (
+                          <span>{displayValue}</span>
+                        )}
+                      </div>
                     </div>
                   );
                 })
               )}
-            </div>
-          </div>
 
-          {/* Berkas & Dokumen yang Diunggah */}
-          {registration.files && registration.files.length > 0 && (
-            <div className="space-y-2">
-              <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
-                <Paperclip className="h-3.5 w-3.5 text-primary" />
-                Berkas & Dokumen Persyaratan ({registration.files.length})
-              </h4>
+              {/* Render any additional uploaded files not explicitly in data keys */}
+              {unmatchedFiles.map((file, idx) => {
+                const fileLabel = fieldMap[file.fieldName]?.label || file.fieldName;
+                const isImg =
+                  file.fileType.startsWith("image/") ||
+                  file.fileName.match(/\.(jpg|jpeg|png|webp)$/i);
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                {registration.files.map((file, idx) => {
-                  const isImage =
-                    file.fileType.startsWith("image/") ||
-                    file.fileName.match(/\.(jpg|jpeg|png|webp)$/i);
-
-                  return (
-                    <div
-                      key={idx}
-                      className="rounded-xl border border-border/70 p-3 bg-muted/10 flex items-center justify-between gap-2"
-                    >
-                      <div className="flex items-center gap-2.5 overflow-hidden">
-                        <div className="h-8 w-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
-                          {isImage ? (
-                            <ImageIcon className="h-4 w-4" />
-                          ) : (
-                            <FileText className="h-4 w-4" />
-                          )}
-                        </div>
-                        <div className="overflow-hidden">
-                          <p className="text-xs font-medium truncate text-foreground">
-                            {file.fileName}
-                          </p>
-                          <p className="text-[10px] text-muted-foreground">
-                            {(file.fileSize / 1024 / 1024).toFixed(2)} MB • {file.fieldName}
-                          </p>
-                        </div>
-                      </div>
-
+                return (
+                  <div
+                    key={`unmatched_${idx}`}
+                    className="px-4 py-2.5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 text-xs hover:bg-muted/20"
+                  >
+                    <span className="font-medium text-muted-foreground sm:w-1/3 capitalize">
+                      {fileLabel}
+                    </span>
+                    <div className="sm:w-2/3 break-words font-medium text-foreground">
                       <a
                         href={file.fileUrl}
                         target="_blank"
-                        rel="noreferrer"
-                        title="Buka Berkas"
-                        className="inline-flex items-center justify-center h-7 w-7 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground transition-colors shrink-0"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center"
                       >
-                        <ExternalLink className="h-3.5 w-3.5" />
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          className="h-7 gap-1.5 text-xs font-medium cursor-pointer border-border hover:bg-primary/10 hover:text-primary transition-colors"
+                        >
+                          {isImg ? (
+                            <ImageIcon className="h-3.5 w-3.5 text-primary" />
+                          ) : (
+                            <FileText className="h-3.5 w-3.5 text-primary" />
+                          )}
+                          <span className="truncate max-w-[200px]">
+                            {file.fileName}
+                          </span>
+                          <ExternalLink className="h-3 w-3 text-muted-foreground ml-1" />
+                        </Button>
                       </a>
                     </div>
-                  );
-                })}
-              </div>
+                  </div>
+                );
+              })}
             </div>
-          )}
+          </div>
 
           {/* Form Verifikasi Status Pendaftar */}
           <div className="rounded-xl border border-primary/20 bg-primary/5 p-4 space-y-3.5">
@@ -328,6 +407,14 @@ export function RegistrationDetailDialog({
                 rows={2}
                 className="text-xs bg-card resize-none"
               />
+            </div>
+
+            <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground pt-1 border-t border-border/40">
+              <Mail className="h-3.5 w-3.5 text-primary shrink-0" />
+              <span>
+                Menyimpan status <strong>VERIFIED</strong> atau <strong>REJECTED</strong> akan otomatis mengirimkan email konfirmasi ke{" "}
+                <strong className="text-foreground">{participantEmail}</strong>.
+              </span>
             </div>
           </div>
         </div>

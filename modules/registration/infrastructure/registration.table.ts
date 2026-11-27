@@ -13,6 +13,7 @@ export interface RegistrationSelect {
   competitionId: string;
   formId: string;
   registrationNumber: string;
+  email?: string | null;
   data: Record<string, any>;
   files: RegistrationUploadedFile[];
   status: RegistrationStatus;

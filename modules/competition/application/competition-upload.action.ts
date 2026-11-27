@@ -3,15 +3,20 @@
 import { apiClient } from "@/lib/api-client";
 import { ActionResult } from "@/modules/shared/domain/common.types";
 
-export interface UploadedGuidebookResult {
+export interface UploadedDocumentResult {
   url: string;
   fileName: string;
   fileSize: number;
 }
 
-export async function uploadCompetitionGuidebookAction(
+export type UploadedGuidebookResult = UploadedDocumentResult;
+
+/**
+ * Unggah berkas dokumen kegiatan / buku panduan lomba langsung ke bucket MinIO competition-assets
+ */
+export async function uploadCompetitionDocumentAction(
   formData: FormData
-): Promise<ActionResult<UploadedGuidebookResult>> {
+): Promise<ActionResult<UploadedDocumentResult>> {
   try {
     const file = formData.get("file");
 
@@ -22,7 +27,7 @@ export async function uploadCompetitionGuidebookAction(
       };
     }
 
-    const res = await apiClient<UploadedGuidebookResult>("competitions/upload-guidebook", {
+    const res = await apiClient<UploadedDocumentResult>("competitions/upload-document", {
       method: "POST",
       body: formData,
     });
@@ -30,29 +35,66 @@ export async function uploadCompetitionGuidebookAction(
     if (!res.success || !res.data) {
       return {
         success: false,
-        error: res.error || "Gagal mengunggah berkas panduan.",
+        error: res.error || "Gagal mengunggah berkas dokumen ke MinIO.",
       };
     }
 
     return {
       success: true,
       data: res.data,
-      message: res.message || "Berkas panduan berhasil diunggah!",
+      message: res.message || "Berkas berhasil diunggah ke MinIO!",
     };
   } catch (error) {
-    console.error("Error uploading competition guidebook:", error);
+    console.error("Error uploading competition document to MinIO:", error);
     return {
       success: false,
-      error: error instanceof Error ? error.message : "Gagal mengunggah berkas panduan.",
+      error: error instanceof Error ? error.message : "Gagal mengunggah berkas dokumen.",
     };
   }
 }
 
-export async function deleteCompetitionGuidebookAction(
+/**
+ * Alias untuk upload guidebook lomba
+ */
+export const uploadCompetitionGuidebookAction = uploadCompetitionDocumentAction;
+
+/**
+ * Hapus berkas dokumen kegiatan dari bucket MinIO competition-assets
+ */
+export async function deleteCompetitionDocumentAction(
   fileUrl: string | null | undefined
 ): Promise<ActionResult<void>> {
-  return {
-    success: true,
-    data: undefined,
-  };
+  if (!fileUrl) {
+    return { success: true, data: undefined };
+  }
+
+  try {
+    const res = await apiClient("competitions/documents/file", {
+      method: "DELETE",
+      body: JSON.stringify({ fileUrl }),
+    });
+
+    if (!res.success) {
+      return {
+        success: false,
+        error: res.error || "Gagal menghapus berkas dokumen dari MinIO.",
+      };
+    }
+
+    return {
+      success: true,
+      message: "Berkas berhasil dihapus dari MinIO.",
+    };
+  } catch (error) {
+    console.error("Error deleting competition document from MinIO:", error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Gagal menghapus berkas dokumen.",
+    };
+  }
 }
+
+/**
+ * Alias untuk delete guidebook
+ */
+export const deleteCompetitionGuidebookAction = deleteCompetitionDocumentAction;

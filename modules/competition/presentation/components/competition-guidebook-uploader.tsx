@@ -157,6 +157,9 @@ export function CompetitionGuidebookUploader({
         <Label className="text-xs font-medium text-foreground flex items-center gap-1.5">
           <FileText className="h-3.5 w-3.5 text-primary" />
           <span>Buku Panduan / Rulebook (PDF)</span>
+          <Badge variant="outline" className="text-[10px] h-4 px-1.5 font-medium bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20">
+            MinIO S3
+          </Badge>
           <span className="text-[11px] font-normal text-muted-foreground">
             (Opsional, Maks. 2MB)
           </span>

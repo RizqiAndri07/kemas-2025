@@ -6,11 +6,12 @@ import {
   updateRegistrationStatusSchema,
   UpdateRegistrationStatusInput,
 } from "../domain/registration.schema";
+import { UpdateRegistrationStatusResult } from "../domain/registration.interface";
 import { ActionResult } from "@/modules/shared/domain/common.types";
 
 export async function updateRegistrationStatusAction(
   payload: UpdateRegistrationStatusInput
-): Promise<ActionResult<{ id: string }>> {
+): Promise<ActionResult<UpdateRegistrationStatusResult>> {
   try {
     const parseResult = updateRegistrationStatusSchema.safeParse(payload);
     if (!parseResult.success) {
@@ -22,7 +23,7 @@ export async function updateRegistrationStatusAction(
 
     const { id, status, notes } = parseResult.data;
 
-    const res = await apiClient<{ id: string }>(`registrations/${id}/status`, {
+    const res = await apiClient<UpdateRegistrationStatusResult>(`registrations/${id}/status`, {
       method: "PATCH",
       body: JSON.stringify({ status, notes }),
     });
@@ -35,6 +36,7 @@ export async function updateRegistrationStatusAction(
     }
 
     revalidatePath("/dashboard/registrations");
+    revalidatePath(`/dashboard/registrations/${id}`);
 
     return {
       success: true,

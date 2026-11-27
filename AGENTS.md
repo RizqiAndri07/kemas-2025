@@ -14,13 +14,15 @@ Selamat datang di repository **Kemas Prasasti 2025 Frontend Application (`fe-app
 2. **Katalog & Detail Kompetisi:**
    - Halaman informasi kompetisi/event (deskripsi, syarat ketentuan, buku panduan/rulebook PDF, hadiah, biaya pendaftaran).
 3. **Sistem Pendaftaran (Registration Flow):**
-   - Formulir pendaftaran dinamis/spesifik per cabang lomba.
-   - Validasi data ketat menggunakan Zod.
-   - Unggah berkas pendaftaran (bukti transfer, scan kartu identitas) melalui backend API.
+   - Halaman formulir pendaftaran online publik di luar dashboard (`/competition/[id]/register` & `/register/[competitionId]`).
+   - Default field wajib email peserta & proteksi penolakan duplikasi email pendaftaran per lomba.
+   - Proteksi anti-spam rate limiting (maksimal 3x/menit, pemblokiran IP 3 jam jika spam).
+   - Validasi data ketat menggunakan Zod & unggah berkas pendaftaran (bukti transfer, scan kartu identitas) ke MinIO via backend API.
 4. **Web CMS Blog & Berita:**
    - Publikasi artikel, rilis pers, berita seputar acara, dan dokumentasi interaktif (BlockNote / Tiptap).
 5. **Admin Dashboard:**
-   - Manajemen verifikasi data pendaftar & bukti pembayaran.
+   - Manajemen dan tombol aksi langsung `Validasi` pendaftar pada tabel data pendaftar.
+   - Halaman khusus validasi pendaftar (`/dashboard/registrations/[id]`) dengan aksi Confirm (Verifikasi) dan Reject (Tolak).
    - Manajemen konten CMS blog & moderasi komentar.
    - Pengaturan lomba, form builder dinamis, dan master contact person.
    - Manajemen pengguna & RBAC (`SUPERADMIN`, `ADMIN`, `CMS_WRITER`).

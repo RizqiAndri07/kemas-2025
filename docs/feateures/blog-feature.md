@@ -25,12 +25,38 @@ app/(dashboard)/dashboard/
     └── [id]/edit/page.tsx         # Form perbarui artikel yang sudah ada
 ```
 
-### B. Sisi Publik (`app/(landing)` & `app/(detail)`)
+### B. Sisi Publik (`app/(landing)`)
 ```text
-app/
-├── (landing)/blog/page.tsx        # Katalog artikel publik (pencarian, kategori, kartu blog)
-└── (detail)/blog/[slug]/page.tsx  # Halaman detail baca artikel (SEO metadata, reader mode)
+app/(landing)/
+├── blog/
+│   ├── page.tsx                       # Katalog artikel publik (pencarian, urutkan terbaru/terlama, filter kategori, kartu blog)
+│   └── [id]/page.tsx                  # Halaman detail baca artikel penuh (SEO metadata, reader view, social share, form komentar)
 ```
+
+#### Fitur Katalog Blog Publik (`/blog`):
+1. **Fitur Search (Pencarian Dinamis):**
+   - Kotak pencarian reaktif mencari kata kunci pada judul (`title`), tag/kategori (`tag`), maupun isi konten (`description`).
+   - Tombol *clear/reset* cepat ketika ada input pencarian.
+2. **Fitur Pengurutan (Terbaru / Terlama):**
+   - Dropdown pilihan urutan rilis:
+     - **Terbaru** (default, descending berdasarkan `createdAt`).
+     - **Terlama** (ascending berdasarkan `createdAt`).
+3. **Penyaringan Kategori / Tag:**
+   - Pill buttons horizontal: "Semua" dan kategori yang diambil dinamis dari artikel (`Event`, `Pendidikan`, `Kompetisi`, `Esports`, `Seni & Budaya`, dll.).
+4. **Tampilan Kartu Blog (Card):**
+   - Komponen `PublicBlogCard` berbasis Shadcn UI `Card`:
+     - Thumbnail Cover (ekstraksi otomatis gambar pertama dari HTML konten atau fallback gradient artistik berikon kategori).
+     - Badge tag/kategori artikel.
+     - Tanggal rilis artikel (Bahasa Indonesia) & estimasi durasi membaca (waktu baca).
+     - Judul artikel dengan pembatasan 2 baris (`line-clamp-2`).
+     - Cuplikan teks (excerpt) bersih dari tag HTML (`line-clamp-3`).
+     - Tombol interaktif **"Baca Selengkapnya"** yang mengarahkan pembaca ke halaman detail `/blog/[id]`.
+5. **Halaman Baca Sepenuhnya (`/blog/[id]`):**
+   - Header artikel lengkap (Breadcrumb, judul responsif, tanggal publikasi, tombol salin tautan dan bagikan ke WhatsApp).
+   - Konten artikel penuh dirender rapi menggunakan Tailwind Typography (`prose prose-neutral dark:prose-invert max-w-none`).
+   - Bagian komentar publik dengan form kirim komentar (`createCommentAction`).
+   - Bagian rekomendasi artikel lainnya (Related Articles) di bagian bawah.
+   *(Catatan: Tombol navigasi di Navbar belum ditambahkan sesuai preferensi instruksi pengguna).*
 
 ---
 

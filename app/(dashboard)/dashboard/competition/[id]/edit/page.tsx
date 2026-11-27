@@ -3,6 +3,8 @@ import { getCompetitionById } from "@/modules/competition/infrastructure/competi
 import { getContactPersonsByCompetitionId } from "@/modules/competition/infrastructure/contact-person.repository";
 import { getDocumentsByCompetitionId } from "@/modules/competition/infrastructure/event-document.repository";
 import { getFormsByCompetitionId } from "@/modules/competition/infrastructure/competition-form.repository";
+import { getRundownByCompetitionId } from "@/modules/competition/infrastructure/competition-rundown.repository";
+import { getBracketByCompetitionId } from "@/modules/competition/infrastructure/competition-bracket.repository";
 import { PageHeader } from "@/components/dashboard/PageHeader";
 import { CompetitionForm } from "@/modules/competition/presentation/components/competition-form";
 
@@ -22,10 +24,12 @@ export default async function EditCompetitionPage({ params }: EditCompetitionPag
     notFound();
   }
 
-  const [contactPersons, documents, forms] = await Promise.all([
+  const [contactPersons, documents, forms, rundown, bracket] = await Promise.all([
     getContactPersonsByCompetitionId(id),
     getDocumentsByCompetitionId(id),
     getFormsByCompetitionId(id),
+    getRundownByCompetitionId(id),
+    getBracketByCompetitionId(id),
   ]);
 
   return (
@@ -43,6 +47,8 @@ export default async function EditCompetitionPage({ params }: EditCompetitionPag
           filePath: d.filePath,
         }))}
         initialAvailableForms={forms}
+        initialRundown={rundown}
+        initialBracket={bracket}
       />
     </div>
   );

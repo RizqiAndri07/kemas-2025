@@ -19,7 +19,28 @@ import {
   ClipboardList,
   ExternalLink,
   FileSpreadsheet,
+  Layers,
+  Plus,
+  Trash2,
+  Globe,
 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Switch } from "@/components/ui/switch";
 import {
   Card,
@@ -31,7 +52,7 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/components/ui/sonner";
 import {
@@ -43,6 +64,10 @@ import {
 } from "@/components/ui/select";
 import { CompetitionSelect, PriceListItem } from "../../infrastructure/competition.table";
 import { CompetitionFormSelect } from "../../infrastructure/competition-form.table";
+import { CompetitionRundownSelect } from "../../infrastructure/competition-rundown.table";
+import { CompetitionBracketSelect } from "../../infrastructure/competition-bracket.table";
+import { RundownEditDialog } from "./rundown/rundown-edit-dialog";
+import { BracketEditDialog } from "./bracket/bracket-edit-dialog";
 import { PriceListSelector } from "./price-list-selector";
 import { ContactPersonSelector } from "./contact-person-selector";
 import {
@@ -54,6 +79,10 @@ import { CompetitionStatus } from "../../domain/competition-status.enum";
 import {
   createCompetitionAction,
   updateCompetitionAction,
+  deleteRundownAction,
+  deleteBracketAction,
+  getRundownAction,
+  getBracketAction,
 } from "../../application/competition.actions";
 
 interface CompetitionFormProps {
@@ -61,6 +90,8 @@ interface CompetitionFormProps {
   initialContactPersonIds?: string[];
   initialDocuments?: CompetitionDocumentItem[];
   initialAvailableForms?: CompetitionFormSelect[];
+  initialRundown?: CompetitionRundownSelect | null;
+  initialBracket?: CompetitionBracketSelect | null;
 }
 
 function toDatetimeLocal(date: Date | string | null | undefined): string {
@@ -81,12 +112,45 @@ export function CompetitionForm({
   initialContactPersonIds,
   initialDocuments,
   initialAvailableForms = [],
+  initialRundown = null,
+  initialBracket = null,
 }: CompetitionFormProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const isEdit = Boolean(initialData);
+
+  // Additional Event States
+  const [rundown, setRundown] = useState<CompetitionRundownSelect | null>(initialRundown);
+  const [bracket, setBracket] = useState<CompetitionBracketSelect | null>(initialBracket);
+  const [isRundownDialogOpen, setIsRundownDialogOpen] = useState(false);
+  const [isBracketDialogOpen, setIsBracketDialogOpen] = useState(false);
+  const [additionalToDelete, setAdditionalToDelete] = useState<"rundown" | "bracket" | null>(null);
+
+  const handleDeleteAdditional = () => {
+    if (!additionalToDelete || !initialData) return;
+    startTransition(async () => {
+      if (additionalToDelete === "rundown") {
+        const res = await deleteRundownAction(initialData.id);
+        if (!res.success) {
+          toast.error(res.error || "Gagal menghapus rundown");
+          return;
+        }
+        setRundown(null);
+        toast.success("Rundown berhasil dihapus!");
+      } else if (additionalToDelete === "bracket") {
+        const res = await deleteBracketAction(initialData.id);
+        if (!res.success) {
+          toast.error(res.error || "Gagal menghapus bagan pertandingan");
+          return;
+        }
+        setBracket(null);
+        toast.success("Bagan pertandingan berhasil dihapus!");
+      }
+      setAdditionalToDelete(null);
+    });
+  };
 
   // Form State
   const [name, setName] = useState(initialData?.name || "");
@@ -502,40 +566,80 @@ export function CompetitionForm({
               </div>
             </div>
 
-            {/* Section: Pengaturan Pendaftaran & Formulir Dinamis */}
-            <div className="space-y-4 pt-3 border-t border-border/50">
-              <div className="flex items-center justify-between">
-                <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
-                  <ClipboardList className="h-3.5 w-3.5 text-primary" />
-                  Pengaturan Pendaftaran & Formulir Peserta
-                </h4>
-                {isEdit && initialData && !noRegistrationNeeded && (
-                  <Link
-                    href={`/dashboard/competition/${initialData.id}/form`}
-                    className="inline-flex items-center gap-1.5 text-xs font-medium text-primary hover:underline bg-primary/10 px-2.5 py-1 rounded-md"
+            {/* Section: Additional Event */}
+            <div className="space-y-4 pt-4 border-t border-border/60">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div className="space-y-0.5">
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                    <Layers className="h-4 w-4 text-primary" />
+                    Additional Event
+                  </h4>
+                  <p className="text-[11px] text-muted-foreground">
+                    Komponen pelengkap kegiatan: formulir pendaftaran peserta, susunan acara (rundown), dan bagan pertandingan (bracket).
+                  </p>
+                </div>
+
+                {/* Dropdown Tambah Additional */}
+                <DropdownMenu>
+                  <DropdownMenuTrigger
+                    className={buttonVariants({
+                      variant: "outline",
+                      size: "sm",
+                      className:
+                        "h-8 text-xs gap-1.5 border-dashed cursor-pointer shrink-0 self-start sm:self-auto",
+                    })}
+                    disabled={isPending || (!noRegistrationNeeded && Boolean(rundown) && Boolean(bracket))}
                   >
-                    <FileSpreadsheet className="h-3.5 w-3.5" />
-                    <span>Buka Form Builder</span>
-                    <ExternalLink className="h-3 w-3 ml-0.5" />
-                  </Link>
-                )}
+                    <Plus className="h-3.5 w-3.5" />
+                    <span>Tambah Additional</span>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-56 text-xs">
+                    {noRegistrationNeeded && (
+                      <DropdownMenuItem
+                        onClick={() => setNoRegistrationNeeded(false)}
+                        className="gap-2 cursor-pointer"
+                      >
+                        <FileSpreadsheet className="h-3.5 w-3.5 text-primary" />
+                        <span>+ Formulir Pendaftaran</span>
+                      </DropdownMenuItem>
+                    )}
+                    {!rundown && (
+                      <DropdownMenuItem
+                        onClick={() => setIsRundownDialogOpen(true)}
+                        className="gap-2 cursor-pointer"
+                      >
+                        <Clock className="h-3.5 w-3.5 text-emerald-500" />
+                        <span>+ Susunan Acara (Rundown)</span>
+                      </DropdownMenuItem>
+                    )}
+                    {!bracket && (
+                      <DropdownMenuItem
+                        onClick={() => setIsBracketDialogOpen(true)}
+                        className="gap-2 cursor-pointer"
+                      >
+                        <Trophy className="h-3.5 w-3.5 text-purple-500" />
+                        <span>+ Bagan Pertandingan (Bracket)</span>
+                      </DropdownMenuItem>
+                    )}
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
 
               {/* Switch No Registration Needed */}
-              <div className="flex items-start justify-between rounded-xl border border-border/70 p-4 bg-muted/20">
+              <div className="flex items-start justify-between rounded-xl border border-border/70 p-3.5 bg-muted/20">
                 <div className="space-y-1 pr-4">
                   <Label
                     htmlFor="noRegistrationNeeded"
-                    className="text-sm font-semibold cursor-pointer text-foreground flex items-center gap-2"
+                    className="text-xs font-semibold cursor-pointer text-foreground flex items-center gap-2"
                   >
                     <span>Tanpa Pendaftaran (No Registration Needed)</span>
                     {noRegistrationNeeded && (
-                      <span className="text-[10px] bg-primary/20 text-primary font-medium px-2 py-0.5 rounded-full">
+                      <Badge variant="secondary" className="text-[10px] bg-primary/20 text-primary font-medium px-2 py-0.5">
                         Acara Bebas Terbuka
-                      </span>
+                      </Badge>
                     )}
                   </Label>
-                  <p className="text-xs text-muted-foreground leading-relaxed">
+                  <p className="text-[11px] text-muted-foreground leading-relaxed">
                     Aktifkan jika acara ini terbuka untuk umum tanpa proses pendaftaran formulir (contoh: Pameran, Acara Pembukaan, Konser Musik Bebas Masuk).
                   </p>
                 </div>
@@ -552,36 +656,170 @@ export function CompetitionForm({
                 />
               </div>
 
-              {/* Status Formulir 1:1 Terintegrasi (Jika registrasi diperlukan) */}
-              {!noRegistrationNeeded && (
-                <div className="rounded-xl border border-border/70 p-4 bg-card flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-2">
-                      <FileSpreadsheet className="h-4 w-4 text-primary" />
-                      <span className="text-sm font-semibold">Formulir Pendaftaran</span>
+              {/* List Additional Aktif */}
+              <div className="space-y-2.5">
+                {/* 1. Formulir Pendaftaran */}
+                {!noRegistrationNeeded && (
+                  <div className="rounded-xl border border-border/70 p-3.5 bg-card flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:border-primary/40 transition-colors">
+                    <div className="flex items-start gap-3">
+                      <div className="p-2 rounded-lg bg-primary/10 text-primary shrink-0 mt-0.5">
+                        <FileSpreadsheet className="h-4 w-4" />
+                      </div>
+                      <div className="space-y-0.5">
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs font-bold text-foreground">Formulir Pendaftaran</span>
+                          <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20">
+                            Aktif
+                          </Badge>
+                        </div>
+                        <p className="text-[11px] text-muted-foreground">
+                          {isEdit
+                            ? "Formulir pendaftaran dinamis untuk calon peserta kompetisi ini."
+                            : "Formulir pendaftaran 1:1 akan langsung diinisialisasi begitu event disimpan."}
+                        </p>
+                      </div>
                     </div>
-                    <p className="text-xs text-muted-foreground">
-                      {isEdit
-                        ? "Formulir pendaftaran dinamis untuk calon peserta kompetisi ini."
-                        : "Formulir pendaftaran 1:1 akan langsung diinisialisasi begitu event disimpan."}
+
+                    <div className="flex items-center gap-2 shrink-0 self-end sm:self-center">
+                      {isEdit && initialData ? (
+                        <>
+                          <Link
+                            href={`/dashboard/competition/${initialData.id}/form`}
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors shadow-xs"
+                          >
+                            <FileSpreadsheet className="h-3.5 w-3.5" />
+                            <span>Edit Formulir</span>
+                            <ExternalLink className="h-3 w-3" />
+                          </Link>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              setNoRegistrationNeeded(true);
+                              toast.info("Pendaftaran dinonaktifkan untuk event ini");
+                            }}
+                            className="h-8 px-2 text-muted-foreground hover:text-destructive text-xs cursor-pointer"
+                            title="Hapus / Nonaktifkan Formulir"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </Button>
+                        </>
+                      ) : (
+                        <span className="text-[11px] text-muted-foreground bg-muted/40 px-2.5 py-1 rounded border border-border/50">
+                          Klik &quot;Simpan & Lanjut Buat Formulir&quot;
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* 2. Susunan Acara (Rundown) */}
+                {rundown && (
+                  <div className="rounded-xl border border-border/70 p-3.5 bg-card flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:border-emerald-500/40 transition-colors">
+                    <div className="flex items-start gap-3">
+                      <div className="p-2 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5">
+                        <Clock className="h-4 w-4" />
+                      </div>
+                      <div className="space-y-0.5">
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs font-bold text-foreground">{rundown.title || "Rundown Acara"}</span>
+                          <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20">
+                            Aktif
+                          </Badge>
+                          <span className="text-[10px] text-muted-foreground">
+                            ({Array.isArray(rundown.items) ? rundown.items.length : 0} Sesi Agenda)
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-muted-foreground line-clamp-1">
+                          {rundown.description || "Susunan jadwal pelaksanaan kegiatan menit demi menit."}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2 shrink-0 self-end sm:self-center">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setIsRundownDialogOpen(true)}
+                        className="h-8 text-xs gap-1.5 cursor-pointer"
+                      >
+                        <Clock className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
+                        <span>Edit Rundown</span>
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setAdditionalToDelete("rundown")}
+                        className="h-8 px-2 text-muted-foreground hover:text-destructive text-xs cursor-pointer"
+                        title="Hapus Rundown"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
+                  </div>
+                )}
+
+                {/* 3. Bagan Pertandingan (Bracket) */}
+                {bracket && (
+                  <div className="rounded-xl border border-border/70 p-3.5 bg-card flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:border-purple-500/40 transition-colors">
+                    <div className="flex items-start gap-3">
+                      <div className="p-2 rounded-lg bg-purple-500/10 text-purple-600 dark:text-purple-400 shrink-0 mt-0.5">
+                        <Trophy className="h-4 w-4" />
+                      </div>
+                      <div className="space-y-0.5">
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs font-bold text-foreground">{bracket.title || "Bagan Pertandingan"}</span>
+                          <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4 bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20">
+                            Aktif
+                          </Badge>
+                          <span className="text-[10px] text-muted-foreground font-mono">
+                            ({bracket.type})
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-muted-foreground line-clamp-1">
+                          {bracket.challongeUrl ? `Challonge: ${bracket.challongeUrl}` : "Skema bagan sistem gugur turnamen."}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2 shrink-0 self-end sm:self-center">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setIsBracketDialogOpen(true)}
+                        className="h-8 text-xs gap-1.5 cursor-pointer"
+                      >
+                        <Trophy className="h-3.5 w-3.5 text-purple-600 dark:text-purple-400" />
+                        <span>Edit Bracket</span>
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setAdditionalToDelete("bracket")}
+                        className="h-8 px-2 text-muted-foreground hover:text-destructive text-xs cursor-pointer"
+                        title="Hapus Bracket"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Kosong State: Jika tidak ada additional sama sekali */}
+                {noRegistrationNeeded && !rundown && !bracket && (
+                  <div className="p-5 text-center border border-dashed rounded-xl bg-muted/20 text-muted-foreground space-y-1.5">
+                    <p className="text-xs font-medium">Belum ada additional event yang aktif</p>
+                    <p className="text-[11px]">
+                      Gunakan tombol &quot;Tambah Additional&quot; di kanan atas untuk mengaktifkan Formulir, Rundown, atau Bracket.
                     </p>
                   </div>
-                  {isEdit && initialData ? (
-                    <Link
-                      href={`/dashboard/competition/${initialData.id}/form`}
-                      className="inline-flex items-center justify-center gap-2 px-3.5 py-2 text-xs font-medium rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors shadow-sm shrink-0"
-                    >
-                      <FileSpreadsheet className="h-3.5 w-3.5" />
-                      <span>Edit Form Builder</span>
-                      <ExternalLink className="h-3 w-3" />
-                    </Link>
-                  ) : (
-                    <span className="text-[11px] text-muted-foreground bg-muted/40 px-3 py-1.5 rounded-md border border-border/50 shrink-0">
-                      Klik &quot;Simpan & Lanjut Buat Formulir&quot; di bawah
-                    </span>
-                  )}
-                </div>
-              )}
+                )}
+              </div>
             </div>
 
             {/* Section 4: Narahubung / Contact Person (CP) */}
@@ -671,6 +909,81 @@ export function CompetitionForm({
           </CardFooter>
         </form>
       </Card>
+
+      {/* Modal Dialogs for Additional Events */}
+      {initialData && (
+        <>
+          <RundownEditDialog
+            isOpen={isRundownDialogOpen}
+            onClose={() => setIsRundownDialogOpen(false)}
+            competitionId={initialData.id}
+            competitionName={name || initialData.name}
+            initialData={rundown}
+            onSuccess={async () => {
+              const res = await getRundownAction(initialData.id);
+              if (res.success && res.data) {
+                setRundown(res.data);
+              }
+            }}
+          />
+
+          <BracketEditDialog
+            isOpen={isBracketDialogOpen}
+            onClose={() => setIsBracketDialogOpen(false)}
+            competitionId={initialData.id}
+            competitionName={name || initialData.name}
+            initialData={bracket}
+            onSuccess={async () => {
+              const res = await getBracketAction(initialData.id);
+              if (res.success && res.data) {
+                setBracket(res.data);
+              }
+            }}
+          />
+
+          <AlertDialog
+            open={Boolean(additionalToDelete)}
+            onOpenChange={(open) => !open && setAdditionalToDelete(null)}
+          >
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle className="text-base font-bold">
+                  {additionalToDelete === "rundown"
+                    ? "Hapus Susunan Acara (Rundown)?"
+                    : "Hapus Bagan Pertandingan (Bracket)?"}
+                </AlertDialogTitle>
+                <AlertDialogDescription className="text-xs text-muted-foreground">
+                  {additionalToDelete === "rundown"
+                    ? "Seluruh susunan agenda waktu dan sesi rundown untuk event ini akan dihapus secara permanen."
+                    : "Pengaturan sistem gugur dan tautan integrasi Challonge untuk event ini akan dihapus secara permanen."}
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel disabled={isPending} className="text-xs h-8">
+                  Batal
+                </AlertDialogCancel>
+                <AlertDialogAction
+                  disabled={isPending}
+                  onClick={handleDeleteAdditional}
+                  className="bg-destructive hover:bg-destructive/90 text-destructive-foreground text-xs h-8 gap-1 cursor-pointer"
+                >
+                  {isPending ? (
+                    <>
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                      Menghapus...
+                    </>
+                  ) : (
+                    <>
+                      <Trash2 className="h-3.5 w-3.5" />
+                      Hapus Komponen
+                    </>
+                  )}
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </>
+      )}
     </div>
   );
 }

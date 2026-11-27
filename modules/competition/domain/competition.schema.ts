@@ -6,6 +6,7 @@ export const priceListItemSchema = z.object({
   id: z.string().min(1, "ID tier tidak boleh kosong"),
   name: z.string().min(1, "Nama price list wajib diisi"),
   price: z.coerce.number().min(0, "Harga tidak boleh negatif"),
+  status: z.enum(["ACTIVE", "EXPIRED"]).optional().default("ACTIVE"),
 });
 
 export type PriceListItemInput = z.infer<typeof priceListItemSchema>;
@@ -39,7 +40,7 @@ export const competitionFormSchema = z
     priceList: z
       .array(priceListItemSchema)
       .min(1, "Minimal harus ada 1 item price list")
-      .default([{ id: "default", name: "Normal Price", price: 0 }]),
+      .default([{ id: "default", name: "Normal Price", price: 0, status: "ACTIVE" }]),
     selectedPriceId: z.string().min(1, "Pilih salah satu price list aktif").default("default"),
     contactPersonIds: z.array(z.string()).optional().default([]),
     guidebookUrl: z.string().optional().nullable().or(z.literal("")),
@@ -85,4 +86,19 @@ export const competitionFormSchema = z
     }
   );
 
-export type CompetitionFormInput = z.infer<typeof competitionFormSchema>;
+export type CompetitionFormInput = z.input<typeof competitionFormSchema>;
+
+export const quickCreateCompetitionSchema = z.object({
+  name: z
+    .string()
+    .min(3, "Nama event minimal 3 karakter")
+    .max(200, "Nama event maksimal 200 karakter"),
+  type: z
+    .enum([CompetitionType.TOURNAMENT, CompetitionType.EVENT])
+    .default(CompetitionType.TOURNAMENT),
+  createRegistrationForm: z.boolean().default(true),
+  createRundown: z.boolean().default(true),
+  createBracket: z.boolean().default(false),
+});
+
+export type QuickCreateCompetitionInput = z.infer<typeof quickCreateCompetitionSchema>;

@@ -8,7 +8,9 @@ export interface RegistrationItem {
   competitionType: string;
   formId: string;
   formTitle: string;
+  formSections?: any[];
   registrationNumber: string;
+  email?: string | null;
   data: Record<string, any>;
   files: RegistrationUploadedFile[];
   status: RegistrationStatus;
@@ -46,3 +48,12 @@ export interface RegistrationStats {
   verified: number;
   rejected: number;
 }
+
+export interface UpdateRegistrationStatusResult {
+  id: string;
+  status: RegistrationStatus;
+  emailSent?: boolean;
+  emailRecipient?: string | null;
+  emailError?: string | null;
+}
+

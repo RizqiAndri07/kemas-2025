@@ -589,31 +589,48 @@ export function RegistrationsTable({
 
                       {/* Tombol Aksi */}
                       <TableCell className="text-right pr-4">
-                        <DropdownMenu>
-                          <DropdownMenuTrigger
-                            render={
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="h-8 w-8 p-0 cursor-pointer"
+                        <div className="flex items-center justify-end gap-1.5">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="h-7 px-2.5 text-xs font-semibold gap-1.5 border-primary/30 text-primary hover:bg-primary/10 cursor-pointer"
+                            onClick={() => router.push(`/dashboard/registrations/${row.id}`)}
+                          >
+                            <FileCheck2 className="h-3.5 w-3.5 text-primary" />
+                            <span>Validasi</span>
+                          </Button>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger
+                              render={
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-7 w-7 p-0 cursor-pointer"
+                                >
+                                  <span className="sr-only">Buka menu aksi</span>
+                                  <MoreVertical className="h-4 w-4" />
+                                </Button>
+                              }
+                            />
+                            <DropdownMenuContent align="end" className="w-52 text-xs">
+                              <DropdownMenuItem
+                                onClick={() => router.push(`/dashboard/registrations/${row.id}`)}
+                                className="cursor-pointer font-medium"
                               >
-                                <span className="sr-only">Buka menu aksi</span>
-                                <MoreVertical className="h-4 w-4" />
-                              </Button>
-                            }
-                          />
-                          <DropdownMenuContent align="end" className="w-48 text-xs">
-                            <DropdownMenuItem
-                              onClick={() => {
-                                setSelectedRegistration(row);
-                                setDetailOpen(true);
-                              }}
-                              className="cursor-pointer"
-                            >
-                              <Eye className="h-3.5 w-3.5 mr-2 text-primary" />
-                              Lihat Detail & Verifikasi
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator />
+                                <FileCheck2 className="h-3.5 w-3.5 mr-2 text-primary" />
+                                Halaman Validasi & Detail
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() => {
+                                  setSelectedRegistration(row);
+                                  setDetailOpen(true);
+                                }}
+                                className="cursor-pointer"
+                              >
+                                <Eye className="h-3.5 w-3.5 mr-2 text-muted-foreground" />
+                                Quick Preview (Modal)
+                              </DropdownMenuItem>
+                              <DropdownMenuSeparator />
                             {row.status !== "VERIFIED" && (
                               <DropdownMenuItem
                                 onClick={() =>
@@ -660,7 +677,8 @@ export function RegistrationsTable({
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
-                      </TableCell>
+                      </div>
+                    </TableCell>
                     </TableRow>
                   );
                 })

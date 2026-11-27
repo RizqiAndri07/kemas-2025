@@ -20,8 +20,8 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "@/components/ui/sonner";
 import {
-  uploadCompetitionGuidebookAction,
-  deleteCompetitionGuidebookAction,
+  uploadCompetitionDocumentAction,
+  deleteCompetitionDocumentAction,
 } from "../../application/competition-upload.action";
 
 export interface CompetitionDocumentItem {
@@ -68,11 +68,11 @@ export function CompetitionDocumentsManager({
       return next;
     });
 
-    // Jika sudah ada berkas yang diupload, hapus dari disk
+    // Jika sudah ada berkas yang diupload, hapus dari disk / MinIO
     if (docToRemove?.filePath) {
       startTransition(async () => {
         try {
-          await deleteCompetitionGuidebookAction(docToRemove.filePath);
+          await deleteCompetitionDocumentAction(docToRemove.filePath);
         } catch {
           // Non-blocking cleanup
         }
@@ -125,7 +125,7 @@ export function CompetitionDocumentsManager({
         const formData = new FormData();
         formData.append("file", file);
 
-        const res = await uploadCompetitionGuidebookAction(formData);
+        const res = await uploadCompetitionDocumentAction(formData);
 
         if (!res.success) {
           const errText = res.error || "Gagal mengunggah berkas PDF.";
@@ -150,7 +150,7 @@ export function CompetitionDocumentsManager({
         const oldPath = documents[index]?.filePath;
         if (oldPath && oldPath !== res.data.url) {
           try {
-            await deleteCompetitionGuidebookAction(oldPath);
+            await deleteCompetitionDocumentAction(oldPath);
           } catch {
             // Non-blocking cleanup
           }
@@ -192,7 +192,7 @@ export function CompetitionDocumentsManager({
     if (doc?.filePath) {
       startTransition(async () => {
         try {
-          await deleteCompetitionGuidebookAction(doc.filePath);
+          await deleteCompetitionDocumentAction(doc.filePath);
         } catch {
           // Non-blocking cleanup
         }
@@ -215,6 +215,9 @@ export function CompetitionDocumentsManager({
             <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
               Dokumen & Berkas Kegiatan (PDF)
             </h4>
+            <Badge variant="outline" className="text-[10px] h-5 px-1.5 font-medium bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20">
+              MinIO S3
+            </Badge>
             {documents.length > 0 && (
               <Badge variant="secondary" className="text-[10px] h-5 px-1.5 font-semibold">
                 {documents.length} Dokumen

@@ -39,7 +39,25 @@ Sesuai kebutuhan sistem, setiap entitas kompetisi memiliki atribut input berikut
 
 ---
 
-## 3. Skema Database PostgreSQL & Drizzle ORM
+## 2.1 Alur Pembuatan Cepat via Modal (Quick Create Flow)
+
+Untuk mempermudah dan mempercepat penambahan cabang lomba/event baru tanpa harus mengisi puluhan input di awal:
+1. **Modal Interaktif (`CreateCompetitionDialog`):**
+   - Muncul saat tombol **"Tambah Kompetisi"** pada toolbar atau kartu **"Tambah Event Baru"** pada grid ditekan.
+   - Menggunakan komponen resmi Shadcn UI Dialog.
+2. **Input Sederhana:**
+   - **`name`**: Nama kompetisi / event (min. 3 karakter).
+   - **`type`**: Tipe kegiatan (`TOURNAMENT` atau `EVENT`).
+   - **Pilihan Komponen Otomatis (Checkbox):**
+     - `createRegistrationForm` (Default: Aktif): Membuat draft formulir pendaftaran dinamis kosong dan otomatis memasangnya sebagai formulir aktif.
+     - `createRundown` (Default: Aktif): Membuat draft susunan acara (`competition_rundowns`) dengan isian agenda kosong.
+     - `createBracket` (Default: Aktif untuk Tournament): Menyiapkan draft bagan pertandingan (`competition_brackets`) kosong.
+3. **Hasil Submit:**
+   - Menyimpan event ke database PostgreSQL via endpoint `POST /api/competitions/quick-create` / Server Action `quickCreateCompetitionAction`.
+   - Menampilkan notifikasi Sonner Toast di posisi `top-right`.
+   - Mengarahkan panitia langsung ke halaman edit detail event (`/dashboard/competition/[id]/edit`) agar dapat melengkapi dokumen, deskripsi, narahubung, dan jadwal waktu secara bertahap.
+
+---
 
 Skema tabel didefinisikan secara deklaratif di `modules/competition/infrastructure/competition.table.ts`:
 
@@ -172,25 +190,22 @@ Narahubung panitia dikelola secara terpusat dengan relasi **Many-to-Many ($M:N$)
 
 ---
 
-## 7. Fitur Unggah Buku Panduan / Rulebook PDF (Folder Publik & Random URL)
+## 7. Fitur Unggah Berkas & Buku Panduan ke MinIO Object Storage
 
-Untuk menghemat kuota cloud storage Supabase, berkas **Buku Panduan / Rulebook (PDF)** disimpan langsung di direktori publik lokal Next.js (`public/documents/guidebooks/`) dan dapat diakses secara umum (*publicly accessible*):
-1. **Penyimpanan & Penamaan Berkas:**
-   - **Lokasi Penyimpanan:** Direktori `public/documents/guidebooks/`.
-   - **Akses Publik:** URL statis Next.js: `/documents/guidebooks/{random-name}.pdf`.
-   - **Generasi Nama Acak:** Menggunakan UUID acak (`crypto.randomUUID()`) atau token kriptografi unik (contoh: `d3b07384-d113-4632-9c98-466a978f8502.pdf`) untuk mencegah tabrakan nama, menjaga keamanan URL, dan menghindari enumerasi nama file.
-   - **Maksimal Ukuran File:** 2 MB ($2 \times 1024 \times 1024$ bytes = $2.097.152$ bytes).
-   - **Format yang Diizinkan:** Berkas PDF saja (`application/pdf`).
+Seluruh berkas dokumen kompetisi dan **Buku Panduan / Rulebook (PDF)** disimpan secara terpusat pada **MinIO Object Storage** (S3-Compatible) di bucket `competition-assets` dengan akses publik (*Public Read*):
+1. **Penyimpanan & Bucket MinIO:**
+   - **Bucket:** `competition-assets` (Public Read Policy: `s3:GetObject`).
+   - **Subdirektori:** `documents/` (berkas umum, formulir, surat pernyataan) dan `guidebooks/` (rulebook/juknis).
+   - **Akses Publik:** URL MinIO: `http://localhost:9000/competition-assets/documents/{filename}.pdf` (atau domain production S3).
+   - **Generasi Nama Unik:** Menggunakan timestamp dan token acak (`Date.now()_UUID`) untuk mencegah tabrakan nama berkas.
+   - **Format yang Diizinkan:** Berkas PDF, Word (.docx, .doc), serta berkas gambar (.png, .jpg).
 2. **Alur Interaksi Upload & Validasi:**
-   - **Komponen Input File (Shadcn UI & Drag-Drop):** Area upload intuitif dengan preview nama berkas, ukuran, dan format.
+   - **Komponen Input File (Shadcn UI & Drag-Drop):** Area upload intuitif dengan badge status MinIO S3, preview nama berkas, ukuran, dan format.
    - **Validasi Klien & Server:**
-     - Ukuran berkas dicek langsung saat dipilih ($> 2\text{ MB}$ akan memicu pesan peringatan yang ramah).
-     - MIME type dicek ketat (`application/pdf`).
-   - **Penanganan State:**
-     - Jika kompetisi sudah memiliki berkas PDF, ditampilkan kartu preview berkas dengan tombol unduh/buka tab baru serta tombol **"Ganti Berkas"** dan **"Hapus Berkas"**.
-     - Berkas bersifat opsional (*nullable*), admin bebas menyimpan form tanpa mengunggah PDF.
+     - Validasi ukuran berkas (Maks. 2MB per berkas).
+     - Validasi tipe MIME dan ekstensi berkas.
    - **Pembersihan Berkas Fisik:**
-     - Saat berkas diganti atau dihapus, berkas lama di `public/documents/guidebooks/` otomatis dibersihkan via filesystem API (`fs/promises.unlink`) dengan proteksi sanitasi path.
+     - Saat berkas diganti atau dihapus, backend use case secara otomatis menghapus objek fisik dari MinIO via `deleteEventDocumentFromMinio()`.
 
 ---
 
@@ -203,8 +218,8 @@ sequenceDiagram
     participant Catalog as Halaman Katalog (/dashboard/competition)
     participant CreatePage as Halaman Form (/dashboard/competition/create)
     participant Action as competition.actions (Server Action)
-    participant FS as Local Filesystem (public/documents/guidebooks)
-    participant Guard as requireAuthUser (Session Guard)
+    participant BE as Express API (/api/competitions/upload-document)
+    participant MinIO as MinIO S3 (competition-assets)
     participant DB as PostgreSQL (competitionsTable)
 
     Admin->>Catalog: Buka halaman /dashboard/competition
@@ -214,21 +229,21 @@ sequenceDiagram
     Admin->>Catalog: Klik Kartu "Tambah Event Baru"
     Catalog->>CreatePage: Navigasi ke /dashboard/competition/create
     Admin->>CreatePage: Isi form (Nama, Tipe, Jadwal, Biaya, Kuota, Deskripsi)
-    opt Unggah Buku Panduan (Opsional)
-        Admin->>CreatePage: Pilih file PDF (Maks. 2MB)
-        CreatePage->>Action: uploadCompetitionGuidebookAction(formData)
-        Action->>Guard: Verifikasi sesi autentikasi admin
-        Action->>Action: Validasi ukuran <= 2MB & MIME PDF
-        Action->>FS: Simpan berkas dengan nama acak UUID ke public/documents/guidebooks/
-        FS-->>Action: Berhasil (/documents/guidebooks/{random-uuid}.pdf)
-        Action-->>CreatePage: Kembalikan URL publik berkas PDF
+    opt Unggah Dokumen / Buku Panduan (Opsional)
+        Admin->>CreatePage: Pilih file PDF / Dokumen (Maks. 2MB)
+        CreatePage->>Action: uploadCompetitionDocumentAction(formData)
+        Action->>BE: POST /api/competitions/upload-document (Multipart FormData)
+        BE->>MinIO: Upload buffer ke bucket competition-assets
+        MinIO-->>BE: Berhasil (URL MinIO Publik)
+        BE-->>Action: Kembalikan URL publik berkas
+        Action-->>CreatePage: Pasang URL ke dokumen item form
     end
     Admin->>CreatePage: Klik tombol "Simpan Event"
-    CreatePage->>Action: createCompetitionAction(payload with guidebookUrl)
-    Action->>Guard: Verifikasi sesi autentikasi admin
-    Action->>Action: Validasi payload dengan competitionFormSchema (Zod)
-    Action->>DB: Simpan ke tabel competitionsTable
-    DB-->>Action: Sukses simpan
+    CreatePage->>Action: createCompetitionAction(payload with documents)
+    Action->>BE: POST /api/competitions
+    BE->>DB: Simpan ke tabel competitions & event_documents
+    DB-->>BE: Sukses simpan
+    BE-->>Action: Sukses
     Action-->>CreatePage: Redirect ke /dashboard/competition & revalidate
     CreatePage-->>Catalog: Halaman menampilkan kartu kompetisi yang baru ditambahkan
 ```
@@ -308,3 +323,88 @@ Antarmuka dibangun **100% menggunakan primitif Shadcn UI**:
   - [x] Pembuatan Server Action & Helper upload/delete file PDF dengan generate random UUID name (`competition-file.helper.ts`, `competition-upload.action.ts`).
   - [x] Integrasi komponen upload PDF di `CompetitionForm` (`competition-guidebook-uploader.tsx`) dan penanda link rulebook di `CompetitionCard`.
 - [x] **Tahap 8: Verifikasi & Pengujian Fungsional Menyeluruh** (Build & lint clean, uji upload PDF, validasi ukuran > 2MB, update & hapus file PDF)
+- [x] **Tahap 9: Tabel Rundown, Tabel Bracket, dan Section Additional Event:**
+  - [x] Pembuatan data table interaktif Rundown (`/dashboard/competition/rundown`) dan Bracket (`/dashboard/competition/bracket`).
+  - [x] Dialog modal cepat edit Rundown (`RundownEditDialog`) dan edit Bracket (`BracketEditDialog`).
+  - [x] Refactoring Form Edit (`CompetitionForm`) dengan field group baru bertajuk **"Additional Event"**.
+  - [x] Integrasi tombol Tambah Additional dinamis (dropdown), Edit komponen, dan Hapus komponen berperingatan AlertDialog.
+  - [x] Pemindahan switch *"Tanpa Pendaftaran (No Registration Needed)"* ke dalam section Additional Event.
+
+---
+
+## 13. Manajemen Rundown & Bracket
+
+Tersedia halaman monitoring dan pengelolaan khusus untuk susunan acara dan bagan turnamen:
+1. **Halaman Rundown (`/dashboard/competition/rundown`):**
+   - Menampilkan seluruh susunan agenda kegiatan dari semua event dalam bentuk tabel interaktif.
+   - Kolom: Nama Event & Badge Tipe, Judul Rundown, Jumlah Sesi/Agenda, Periode Pelaksanaan, Terakhir Diperbarui, dan Aksi (Edit dialog & Hapus).
+   - Dilengkapi filter pencarian realtime.
+2. **Halaman Bracket Card Grid (`/dashboard/competition/bracket`):**
+   - Menampilkan seluruh bagan turnamen sistem gugur/round-robin menggunakan **Card Grid interaktif** (bukan tabel kaku), memberikan tampilan visual modern yang informatif.
+   - Setiap kartu menyajikan:
+     - Badge format turnamen (Single Elimination, Double Elimination, Round Robin, Swiss).
+     - Nama turnamen/kompetisi dan judul bagan.
+     - Status bagan: *Bagan Aktif & Berjalan* (dengan progress bar pertandingan selesai) atau *Bagan Belum Diundi*.
+     - Tautan langsung ke live Challonge jika terhubung.
+     - **Tombol "View":** Mengarahkan panitia langsung ke **Halaman Dedicated Bagan Pertandingan** (`/dashboard/competition/bracket/[id]`), menyajikan visualisasi pohon turnamen interaktif yang luas (bukan modal pop-up), dilengkapi dengan:
+       - **Statistik Cepat Turnamen:** Total peserta/tim terdaftar, jumlah babak, rasio pertandingan selesai/belum, dan highlight tim Juara Turnamen.
+       - **Kontrol Kanvas Interaktif:** Zoom In, Zoom Out, Reset 100%, dan tombol Layar Penuh (*Fullscreen*).
+       - **Tombol Aksi Kelola:** Akses langsung ke modal pengelolaan skor pertandingan dan seeding bagan tanpa perlu kembali ke halaman daftar.
+       - **Tautan Live Eksternal:** Akses cepat ke bagan live Challonge di tab baru jika telah dikonfigurasi.
+     - **Tombol "Edit":** Membuka modal dialog manajemen turnamen dengan 3 tab:
+       - **Tab Drawing & Seeding:** Mengambil seluruh data peserta berstatus `VERIFIED` dari kompetisi tersebut (`GET /api/competitions/:id/verified-participants`), menyediakan checklist peserta, tombol acak (shuffle) seed, dan generator bagan turnamen otomatis.
+       - **Tab Live Match & Skor:** Mengelola hasil pertandingan tiap babak (Babak 1, Perempat Final, Semi Final, Grand Final), input skor angka, validasi tanpa seri, serta otomatis meloloskan tim pemenang ke babak selanjutnya.
+       - **Tab Info & Challonge:** Mengatur judul bagan, format gugur, dan tautan live stream/Challonge eksternal.
+     - **Tombol Hapus:** Menghapus bagan pertandingan dengan konfirmasi peringatan `AlertDialog`.
+
+
+---
+
+## 14. Section Form: "Additional Event"
+
+Pada halaman edit kompetisi (`/dashboard/competition/[id]/edit`), seluruh komponen tambahan dikelompokkan ke dalam satu kartu terpadu bertajuk **"Additional Event"**:
+1. **Switch Tanpa Pendaftaran (No Registration Needed):**
+   - Mengontrol apakah event memerlukan proses pendaftaran formulir atau bersifat acara bebas terbuka.
+2. **Daftar Additional Aktif:**
+   - **Formulir Pendaftaran:** Menampilkan status aktif, tombol *"Edit Formulir"* (menuju form builder dinamis), dan tombol nonaktifkan/hapus.
+   - **Susunan Acara (Rundown):** Menampilkan judul rundown, jumlah agenda sesi yang terdaftar, tombol *"Edit Rundown"* (membuka modal dialog agenda), dan tombol hapus.
+   - **Bagan Pertandingan (Bracket):** Menampilkan judul bagan, format pertandingan, status link Challonge, tombol *"Edit Bracket"* (membuka modal dialog bracket), dan tombol hapus.
+3. **Dropdown "Tambah Additional":**
+   - Memungkinkan panitia mengaktifkan komponen additional yang belum ada (Formulir Pendaftaran, Rundown, atau Bracket) secara instan langsung dari halaman edit.
+
+---
+
+## 15. Integrasi Halaman Publik: Landing, Detail, dan Registrasi Peserta (Database-Driven)
+
+Seluruh halaman publik kompetisi telah terhubung 100% secara langsung ke database PostgreSQL melalui RESTful API backend (`be-app`) menggunakan standar komponen **Shadcn UI** yang fungsional, bersih, dan aksesibel:
+
+1. **Halaman Katalog Kompetisi (`/competition`):**
+   - **Path File:** `app/(landing)/competition/page.tsx`
+   - **Data Fetching:** Memanggil `getAllCompetitions()` dari `competition.repository.ts` (`GET /api/competitions`) secara dinamis (`force-dynamic`).
+   - **Komponen UI (Shadcn):**
+     - `HeroSection.tsx`: Menampilkan badge dinamis total kompetisi aktif dan judul resmi PRASASTI 2026.
+     - `EventCard.tsx`: Kartu standar Shadcn UI (`Card`, `CardHeader`, `CardTitle`, `CardDescription`, `CardContent`, `CardFooter`, `Badge`, `Button`).
+     - **Informasi Kartu:** Badge tipe (`TOURNAMENT`/`EVENT`), Badge status pendaftaran (`Pendaftaran Dibuka` / `Pendaftaran Ditutup`), periode pendaftaran, tanggal pelaksanaan, rincian biaya / paket tarif, kuota maksimal peserta, dan jumlah dokumen juknis yang tersedia.
+     - **Aksi Cepat:** Tombol *"Lihat Detail"* (mengarahkan ke `/competition/[id]`) dan *"Daftar Sekarang"* (mengarahkan langsung ke formulir pendaftaran `/competition/[id]/register`).
+
+2. **Halaman Detail Kompetisi (`/competition/[id]`):**
+   - **Path File:** `app/(detail)/competition/[id]/page.tsx`
+   - **Data Fetching:** Memanggil `getCompetitionById(id)` dari `competition.repository.ts` (`GET /api/competitions/:id`).
+   - **Komponen UI (Shadcn):**
+     - **Top Bar:** Tombol kembali *"Kembali ke Daftar Kompetisi"* beserta badge status dan tipe.
+     - **Header Hero Card:** Judul kompetisi, deskripsi lengkap, serta highlight biaya registrasi.
+     - **Grid 2 Kolom:**
+       - **Jadwal & Waktu Pelaksanaan:** Kartu ringkasan tanggal buka/tutup registrasi dan rentang hari acara.
+       - **Biaya & Paket Registrasi:** Tabel interaktif Shadcn UI yang menyajikan seluruh tier harga (`priceList`) beserta penanda tier aktif.
+       - **Buku Panduan & Dokumen Resmi:** Daftar seluruh dokumen panduan/juknis lomba dengan tombol *"Unduh"* langsung ke berkas terkait.
+       - **Susunan Acara (Rundown):** Tabel jadwal kegiatan (Waktu, Agenda, Lokasi/Keterangan) jika event memiliki rundown aktif.
+       - **Bagan Pertandingan (Bracket):** Informasi tipe format turnamen dan tautan bagan Challonge eksternal jika dikonfigurasi.
+       - **Sidebar Pendaftaran:** Status pembukaan, kuota tersisa, dan tombol utama *"Daftar Sekarang (Formulir Online)"* menuju formulir pendaftaran.
+       - **Sidebar Narahubung:** Kontak panitia penanggung jawab dengan tombol pintasan chat WhatsApp langsung.
+
+3. **Halaman Registrasi Peserta (`/competition/[id]/register` & `/register/[competitionId]`):**
+   - **Path File:** `app/(detail)/competition/[id]/register/page.tsx` dan `app/(landing)/register/[competitionId]/page.tsx`.
+   - **Alur Pendaftaran:** Mengambil skema formulir aktif dari database (`GET /api/competitions/:id/form/active-or-create`) dan merender komponen `DynamicFormRenderer`.
+   - **Proteksi & Validasi:** Dilengkapi validasi client-side, pencegahan pendaftaran ganda via email, proteksi anti-spam rate limiter, serta penerbitan nomor unik registrasi pendaftar.
+   - **Relay Redirect:** URL ramah `/register/[competitionId]` secara otomatis meneruskan (*HTTP 307 temporary redirect*) peserta ke rute kanonikal `/competition/[id]/register`.
+

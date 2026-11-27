@@ -1,171 +1,176 @@
-# Spesifikasi Fitur: Manajemen Pendaftar (Registrations) & Rate Limiting Pendaftaran
+# Spesifikasi Fitur: Pendaftaran Publik & Validasi Admin (Registrations Management)
 
-Dokumen ini mendefinisikan spesifikasi fungsional, arsitektur teknis Domain-Driven Design (DDD), skema database PostgreSQL (Drizzle ORM), antarmuka Data Table Shadcn UI, serta mekanisme keamanan **Rate Limiting** untuk pendaftaran publik pada platform **Kemas Prasasti 2025**.
-
----
-
-## 1. Latar Belakang & Masalah
-
-1. **Perbaikan Tampilan Dropdown Formulir pada Competition Form:**
-   - Dropdown pemilihan formulir pendaftaran aktif pada halaman pembuatan / edit kompetisi sebelumnya menampilkan string UUID mentah alih-alih nama formulir (`form.title`).
-   - Perlu penyesuaian pada render child komponen `<SelectValue>` Base UI agar judul formulir dan jumlah section selalu tampil dengan jelas.
-
-2. **Kebutuhan Manajemen Pendaftar (Admin Dashboard):**
-   - Setelah formulir dinamis dibuat per kompetisi, panitia membutuhkan halaman terpusat untuk memantau, memfilter, mencari, dan memverifikasi data pendaftar yang masuk.
-   - Setiap pendaftar memiliki status verifikasi:
-     - `UNVERIFIED` (*Belum Terverifikasi / Menunggu Verifikasi*)
-     - `VERIFIED` (*Terverifikasi / Diterima*)
-     - `REJECTED` (*Ditolak / Berkas Tidak Sesuai*)
-   - Panitia dapat melihat detail isian formulir dinamis (nama tim, anggota, kartu identitas, bukti bayar) serta mengubah status verifikasi dan memberikan catatan/alasan penolakan.
-
-3. **Keamanan Formulir Publik (Anti-Spam & Anti-Bruteforce):**
-   - Karena formulir pendaftaran dibuka secara publik tanpa login peserta, rentan terhadap spam bot atau pengiriman data massal (bruteforce).
-   - Diperlukan mekanisme **Middleware Rate Limiting** yang membatasi maksimal **3 kali pendaftaran per menit per IP address / session**. Jika melampaui batas, sistem mengembalikan status HTTP 429 (*Too Many Requests*) dengan header `Retry-After`.
+Dokumen ini mendefinisikan arsitektur teknis Domain-Driven Design (DDD), formulir publik di luar dashboard, validasi email unik per kompetisi, proteksi **Anti-Spam Rate Limiter (Blokir IP 3 Jam)**, serta **Halaman Khusus Validasi Pendaftar** di Admin Dashboard pada platform **Kemas Prasasti 2025**.
 
 ---
 
-## 2. Arsitektur Database (PostgreSQL & Drizzle ORM)
+## 1. Ikhtisar Alur & Arsitektur Fitur
 
-### A. Enum Status Pendaftar (`registration_status`)
-```typescript
-export const registrationStatusEnum = pgEnum("registration_status", [
-  "UNVERIFIED",
-  "VERIFIED",
-  "REJECTED",
-]);
-export type RegistrationStatus = (typeof registrationStatusEnum.enumValues)[number];
-```
+```mermaid
+flowchart TD
+    subgraph PublicUser ["User Publik (Di Luar Dashboard)"]
+        CompDetail["Halaman Detail Kompetisi (/competition/[id])"]
+        RegPage["Halaman Formulir Pendaftaran (/competition/[id]/register)"]
+        EmailField["Default Input Field: Email (Wajib & Valid)"]
+        DynamicFields["Field Dinamis & Upload Berkas MinIO"]
+        SubmitBtn["Submit Pendaftaran"]
+    end
 
-### B. Tabel Pendaftar (`registrationsTable`)
-File: `modules/registration/infrastructure/registration.table.ts`
+    subgraph SecurityShield ["Proteksi Keamanan & Anti-Spam"]
+        RateCheck{"Rate Limiter: > 3x dalam 1 menit?"}
+        BlockIP["Blokir IP Selama 3 Jam (HTTP 429 IP_BLOCKED_SPAM)"]
+        EmailCheck{"Cek Email di DB: Sudah pernah terdaftar?"}
+        DuplicateReject["Tolak Duplikasi (HTTP 409 EMAIL_ALREADY_REGISTERED)"]
+    end
 
-```typescript
-export const registrationsTable = pgTable("registrations", {
-  id: uuid("id").defaultRandom().primaryKey(),
-  
-  // Relasi ke Kompetisi & Formulir
-  competitionId: uuid("competition_id")
-    .notNull()
-    .references(() => competitionsTable.id, { onDelete: "cascade" }),
-  formId: uuid("form_id")
-    .notNull()
-    .references(() => competitionFormsTable.id, { onDelete: "restrict" }),
-  
-  // Nomor Registrasi Unik (e.g., KP25-REG-1700000000000-001)
-  registrationNumber: varchar("registration_number", { length: 60 }).notNull().unique(),
-  
-  // Data Isian Dinamis Formulir (JSONB)
-  data: jsonb("data").$type<Record<string, any>>().notNull(),
-  
-  // Berkas yang diunggah (JSONB Array)
-  files: jsonb("files").$type<Array<{
-    fieldName: string;
-    fileName: string;
-    fileUrl: string;
-    fileType: string;
-    fileSize: number;
-  }>>().default([]).notNull(),
-  
-  // Status Verifikasi
-  status: registrationStatusEnum("status").default("UNVERIFIED").notNull(),
-  
-  // Catatan Verifikasi / Alasan Penolakan dari Admin
-  notes: text("notes"),
-  
-  // Audit Trail & Metadata Klien
-  ipAddress: varchar("ip_address", { length: 45 }),
-  userAgent: text("user_agent"),
-  verifiedAt: timestamp("verified_at", { withTimezone: true }),
-  verifiedBy: uuid("verified_by").references(() => usersTable.id, { onDelete: "set null" }),
-  
-  // Standar Audit Trail (AGENTS.md Rule 7)
-  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
-  updatedAt: timestamp("updated_at", { withTimezone: true })
-    .defaultNow()
-    .$onUpdate(() => new Date())
-    .notNull(),
-});
+    subgraph DatabaseLayer ["Data & Storage Layer"]
+        RegTable[("Tabel Registrations (PostgreSQL)")]
+        MinIOProofs[("Bucket MinIO: registration-proofs")]
+    end
+
+    subgraph AdminDashboard ["Admin Dashboard"]
+        RegList["Tabel Pendaftar (/dashboard/registrations)"]
+        ValidateBtn["Tombol 'Validasi' Per Baris"]
+        DetailPage["Halaman Detail & Validasi (/dashboard/registrations/[id])"]
+        ActionConfirm["Tombol Confirm (Verifikasi)"]
+        ActionReject["Tombol Reject (Tolak Pendaftaran)"]
+    end
+
+    CompDetail -->|Klik 'Daftar Sekarang'| RegPage
+    RegPage --> EmailField
+    RegPage --> DynamicFields
+    DynamicFields --> SubmitBtn
+
+    SubmitBtn --> RateCheck
+    RateCheck -->|Ya: Spam Terdeteksi| BlockIP
+    RateCheck -->|Tidak: Lolos| EmailCheck
+
+    EmailCheck -->|Ya: Email Terdaftar| DuplicateReject
+    EmailCheck -->|Tidak: Email Unik| RegTable
+    SubmitBtn -.->|Upload Berkas| MinIOProofs
+
+    RegTable --> RegList
+    RegList --> ValidateBtn
+    ValidateBtn -->|Navigasi Halaman Sendiri| DetailPage
+    DetailPage --> ActionConfirm
+    DetailPage --> ActionReject
+    ActionConfirm -->|Update Status VERIFIED| RegTable
+    ActionReject -->|Update Status REJECTED + Alasan| RegTable
 ```
 
 ---
 
-## 3. Spesifikasi Halaman Pendaftar (`/dashboard/registrations`)
+## 2. Formulir Pendaftaran Publik (Di Luar Dashboard)
 
-Mengikuti standar **AGENTS.md Rule 5 (Shadcn UI First)** dan **Rule 6 (Standar Data Table Shadcn UI)**:
-
-1. **Toolbar & Filter Interaktif:**
-   - **Filter Kompetisi:** Dropdown pilihan kompetisi (e.g., "Semua Kompetisi", "Futsal", "Try Out", dll.).
-   - **Filter Status Pendaftaran:** Pilihan status `Semua`, `Belum Terverifikasi (Unverified)`, `Terverifikasi (Verified)`, `Ditolak (Rejected)`.
-   - **Pencarian Global:** Pencarian instan berdasarkan Nomor Registrasi, Nama Pendaftar (ekstraksi dinamis dari field nama), email, atau nomor HP.
-2. **Kolom Data Table:**
-   - **Nomor Registrasi:** Teks kode unik pendaftaran (`KP25-REG-...`).
-   - **Nama Pendaftar / Tim:** Diambil secara cerdas dari isian dinamis formulir (e.g. `fullName`, `namaLengkap`, `teamName`, atau nama field teks pertama).
-   - **Kompetisi / Event:** Nama cabang lomba terkait dengan badge tipe kompetisi.
-   - **Tanggal Daftar:** Waktu pendaftaran (*formatted datetime*) dengan sorting interaktif (Ascending/Descending).
-   - **Status Verifikasi:**
-     - `UNVERIFIED`: Badge kuning/amber (*Menunggu Verifikasi*).
-     - `VERIFIED`: Badge hijau (*Terverifikasi*).
-     - `REJECTED`: Badge merah/destructive (*Ditolak*).
-   - **Aksi:** Dropdown menu / Icon button untuk "Lihat Detail Pendaftar" dan "Ubah Status Verifikasi".
-3. **Paginasi Terpadu:**
-   - Kontrol navigasi halaman dan opsi jumlah baris per halaman (5, 10, 20, 50).
-4. **Modal / Dialog Detail Pendaftar & Verifikasi:**
-   - Menampilkan seluruh rincian jawaban form per section.
-   - Preview dan tautan unduh berkas yang diunggah (scan KTP/Kartu Pelajar, bukti bayar).
-   - Formulir verifikasi: Ubah status menjadi `VERIFIED` atau `REJECTED` disertai input catatan/alasan penolakan.
-   - Notifikasi toast Sonner di pojok kanan bawah (**Rule 8**).
+- **Akses Rute Publik:**
+  - `/competition/[id]/register`
+  - `/register/[competitionId]` (otomatis diarahkan)
+- **Komponen Utama:** `fe-app/modules/registration/presentation/components/dynamic-form-renderer.tsx`
+- **Default Field Wajib (Email & Nomor WhatsApp / HP):**
+  - Setiap formulir pendaftaran secara otomatis menyertakan field **`email`** dan **`phone`** (Nomor WhatsApp / HP Aktif).
+  - Wajib format email valid (`z.string().email()`) dan nomor HP minimal 9 digit angka.
+  - Dilengkapi petunjuk: *"1 alamat email hanya dapat mendaftar 1 kali pada kompetisi ini. Jika sebelumnya sudah mendaftar, harap hubungi admin."*
+- **Penanganan Status Tier Harga (Price List Deprecated Strikethrough):**
+  - Tier harga yang berstatus `EXPIRED` ditampilkan dengan efek tercoret (*strikethrough* / `line-through opacity-60 text-muted-foreground`) pada katalog & formulir pendaftaran tanpa kolom status eksplisit.
+- **Tampilan Berkas & Label Field pada Admin:**
+  - Admin view memetakan key field dinamis (`field_xxx`) ke label asli formulir menggunakan `registration.formSections`.
+  - Berkas unggahan peserta dirender langsung inline di baris field terkait dalam bentuk tombol interaktif yang membuka dokumen/gambar di tab baru (`target="_blank" rel="noopener noreferrer"`) menggunakan MinIO Presigned URL aman.
+  - Section terpisah `Dokumen & Berkas Unggahan` ditiadakan agar antarmuka ringkas dan langsung terasosiasi dengan konteks pertanyaan.
+- **Penanganan Error Duplikasi Email:**
+  - Jika user mencoba mendaftar dengan email yang sama pada cabang lomba yang sama, sistem menolak dengan kode `EMAIL_ALREADY_REGISTERED`.
+  - Formulir menampilkan banner peringatan amber dan Sonner toast yang menginstruksikan user untuk langsung menghubungi admin via kontak WhatsApp panitia.
+- **Layar Sukses Pendaftaran:**
+  - Menampilkan Nomor Registrasi resmi (`KP25-REG-...`) dengan tombol salin (copy to clipboard).
+  - Status pendaftaran: `Menunggu Verifikasi Admin`.
+  - Tombol navigasi kembali ke informasi lomba atau beranda kompetisi.
 
 ---
 
-## 4. Spesifikasi Middleware Rate Limiting
+## 3. Proteksi Anti-Spam & Pemblokiran IP 3 Jam
 
-### A. Aturan Bisnis
-- **Maksimal Permintaan:** 3x pendaftaran per 60 detik (1 menit).
-- **Identifier Klien:**
-  - IP Address diperoleh dari header: `x-forwarded-for` (IP pertama), `x-real-ip`, atau `request.ip`.
-  - Dikombinasikan dengan fingerprint cookie/session unik `kp_reg_session` untuk akurasi tinggi pada jaringan bersama (NAT Wi-Fi).
-- **Target Endpoint:**
-  - URL pendaftaran publik: `/api/registrations`, `/competition/*/register`, atau invocation Server Action pendaftaran.
-
-### B. Mekanisme Algoritma (Sliding Window In-Memory / Token Bucket)
-- Sistem menyimpan timestamp request per client ID dalam cache memori dengan waktu kedaluwarsa 60 detik.
-- Setiap request dihitung:
-  - Jika jumlah request dalam 60 detik terakhir $\ge 3$:
-    - Sistem mengembalikan response HTTP **429 Too Many Requests**.
-    - Header respons:
-      - `Retry-After: <detik tersisa hingga window reset>`
-      - `X-RateLimit-Limit: 3`
-      - `X-RateLimit-Remaining: 0`
-      - `X-RateLimit-Reset: <epoch timestamp>`
-    - Body JSON:
-      ```json
-      {
-        "error": "Terlalu banyak permintaan pendaftaran dari perangkat/IP Anda. Batas maksimal adalah 3 pendaftaran per menit. Silakan coba lagi dalam beberapa saat.",
-        "retryAfter": 45
-      }
-      ```
-  - Jika jumlah request $< 3$:
-    - Request diteruskan dan header `X-RateLimit-Remaining` dikurangi.
+- **Aturan Batas:** Maksimal **3 kali submit dalam 1 menit** per alamat IP.
+- **Deteksi Spam & Hukuman Blokir:**
+  - Jika seorang pengguna atau bot mencoba mengirim formulir lebih dari 3 kali dalam 1 menit:
+    - Alamat IP pengguna **DIBLOKIR SELAMA 3 JAM** (`3 * 60 * 60 * 1000 ms`).
+    - Seluruh permintaan pendaftaran dari IP tersebut selama masa blokir langsung ditolak di level middleware Express (`registrationSpamLimiterMiddleware`).
+    - Response HTTP 429 menyertakan kode `IP_BLOCKED_SPAM` dan countdown waktu blokir yang tersisa.
+    - Pada antarmuka frontend, tombol submit langsung dinonaktifkan dan muncul banner peringatan keamanan merah.
 
 ---
 
-## 5. Rencana File & Modifikasi
+## 4. Fitur Validasi Admin (Dedicated Detail Page)
 
-1. **Bugfix Dropdown UUID:**
-   - `modules/competition/presentation/components/competition-form.tsx`: Memperbaiki render child `SelectValue` agar memunculkan `title` formulir.
-2. **Database & Migrasi:**
-   - `modules/registration/domain/registration-status.enum.ts`: Definisi enum status verifikasi.
-   - `modules/registration/infrastructure/registration.table.ts`: Definisi Drizzle table `registrations`.
-   - `db/schema/index.ts`: Re-export table & enum baru.
-   - Eksekusi migrasi Drizzle Kit PostgreSQL via Supabase.
-3. **Repository & Server Actions:**
-   - `modules/registration/infrastructure/registration.repository.ts`: Query pendaftar dengan filter kompetisi & status, pagination, serta mutasi status.
-   - `modules/registration/application/registration.actions.ts`: Server action untuk update status, delete, dan submit pendaftar.
-4. **Presentation Layer Dashboard:**
-   - `modules/registration/presentation/components/registrations-table.tsx`: Data Table Shadcn UI pendaftar.
-   - `modules/registration/presentation/components/registration-detail-dialog.tsx`: Dialog detail isian dinamis & aksi verifikasi status.
-   - `app/(dashboard)/dashboard/registrations/page.tsx`: Halaman admin pendaftar.
-   - `components/dashboard/DashboardSidebar.tsx`: Menambahkan menu "Data Pendaftar" di sidebar.
-5. **Rate Limiter & Middleware:**
-   - `lib/rate-limiter.ts`: Sliding-window memory rate limiter utility.
-   - `middleware.ts`: Integrasi rate limiter untuk rute pendaftaran.
+### A. Tombol Aksi di Tabel Pendaftar (`/dashboard/registrations`)
+- Pada setiap baris data pendaftar di `RegistrationsTable`, tersedia tombol utama:
+  - **`Validasi`** (dengan ikon `FileCheck2` dan border primer).
+  - Ketika diklik, langsung mengarahkan (*router.push*) ke halaman khusus: `/dashboard/registrations/[id]`.
+  - Dropdown menu juga tetap menyediakan opsi *"Halaman Validasi & Detail"* serta *"Quick Preview (Modal)"*.
+
+### B. Halaman Khusus Validasi Pendaftar (`/dashboard/registrations/[id]`)
+- **File Halaman:** `fe-app/app/(dashboard)/dashboard/registrations/[id]/page.tsx`
+- **Komponen Presentasi:** `fe-app/modules/registration/presentation/components/registration-validation-view.tsx`
+- **Bagian-Bagian Halaman:**
+  1. **Header & Status:**
+     - Tombol kembali ke tabel pendaftar.
+     - Nomor Registrasi pendaftar (`KP25-REG-...`) dengan badge status aktif (`UNVERIFIED`, `VERIFIED`, `REJECTED`).
+  2. **Card Target Email Pendaftar & Notifikasi 1-Klik:**
+     - Menampilkan alamat email tujuan pendaftar secara transparan.
+     - Keterangan sistem: *"Sistem akan mengirimkan email notifikasi otomatis ke alamat ini begitu Anda memvalidasi status (ACC / Tolak)."*
+     - Banner status pengiriman live (hijau jika sukses terkirim dengan alamat email tujuan, atau amber peringatan jika pengiriman email gagal beserta rincian error).
+  3. **Card Profil & Identitas Peserta:**
+     - Nomor registrasi (dengan tombol salin).
+     - Alamat email pendaftar unik (dengan tombol salin dan mailto).
+     - Nama cabang lomba dan struktur formulir.
+     - Tanggal pengiriman lengkap (WIB).
+     - Riwayat audit: nama admin yang memverifikasi dan waktu verifikasi (jika sudah divalidasi).
+  4. **Card Isian Formulir Dinamis:**
+     - Daftar lengkap seluruh field dan nilai isian peserta yang diformat rapi dalam tabel grid.
+     - Penanganan berkas unggahan: tombol interaktif dengan nama berkas asli yang membuka berkas di tab baru secara aman menggunakan MinIO presigned URL.
+  5. **Card Berkas & Dokumen Bukti (MinIO):**
+     - Daftar berkas yang diunggah peserta ke bucket `registration-proofs`.
+     - Pratinjau langsung untuk file gambar (*image preview zoom*).
+     - Tombol *"Buka Berkas"* (tab baru) dan *"Unduh"*.
+  6. **Panel Tindakan Validasi (Action Box & 1-Click Email Dispatch):**
+     - Textarea input catatan evaluasi / alasan penolakan.
+     - **Tombol Confirm:**
+       - Menyetujui pendaftaran dan mengubah status menjadi `VERIFIED`.
+       - Dialog konfirmasi memberitahukan: *"Email konfirmasi penerimaan akan otomatis dikirimkan ke [email] secara instan."*
+       - 1 kali klik langsung memperbarui status di database DAN mengirim email konfirmasi kelolosan via backend.
+     - **Tombol Reject:**
+       - Menolak pendaftaran dan mengubah status menjadi `REJECTED`.
+       - Dialog konfirmasi mewajibkan catatan alasan penolakan dan memberitahukan: *"Email pemberitahuan penolakan beserta catatan alasan evaluasi akan otomatis dikirimkan ke [email] secara instan."*
+       - 1 kali klik langsung memperbarui status di database DAN mengirim email penolakan dengan catatan resmi.
+     - **Tombol Reset Status:**
+       - Mengembalikan status ke `UNVERIFIED` jika dibutuhkan evaluasi ulang.
+     - **Feedback Toast Sonner (top-right):**
+       - Menampilkan notifikasi sukses perubahan status dan status pengiriman email (`toast.success` bila email terkirim, `toast.warning` bila status berhasil diupdate namun email gagal terkirim).
+  7. **Panel Audit Jaringan & Anti-Spam:**
+     - Menampilkan IP Address pendaftar dan User-Agent perangkat pendaftar untuk deteksi fraud.
+
+---
+
+## 5. Ringkasan File Baru & Modifikasi
+
+| Lokasi File | Deskripsi Perubahan |
+|---|---|
+| `be-app/src/lib/rate-limiter.ts` | In-memory limiter 3x/menit dengan auto-block IP 3 jam jika terdeteksi spam. |
+| `be-app/src/middlewares/registration-spam-limiter.middleware.ts` | Express middleware proteksi spam pendaftaran. |
+| `be-app/src/modules/registration/infrastructure/registration.table.ts` | Penambahan kolom `email` di tabel PostgreSQL `registrations`. |
+| `be-app/src/modules/registration/infrastructure/registration.repository.ts` | Query `findRegistrationByEmail` dan penyimpanan `email`. |
+| `be-app/src/modules/registration/infrastructure/registration-email.service.ts` | Service email Nodemailer/Mailpit dengan HTML responsive template status VERIFIED & REJECTED. |
+| `be-app/src/modules/registration/application/registration.service.ts` | Eksekusi otomatis pengiriman email status pada use case `updateRegistrationStatusService`. |
+| `be-app/src/modules/registration/presentation/registration.controller.ts` | Response API diperkaya dengan field `emailSent`, `emailRecipient`, dan `emailError`. |
+| `fe-app/modules/registration/domain/registration.interface.ts` | Tipe data `UpdateRegistrationStatusResult` dengan status email delivery. |
+| `fe-app/modules/registration/application/registration.actions.ts` | Server Action `updateRegistrationStatusAction` mengembalikan hasil pengiriman email. |
+| `fe-app/modules/registration/presentation/components/registration-validation-view.tsx` | Halaman validasi admin dengan panel preview email target, live email delivery alert banner, dan notifikasi toast Sonner komprehensif. |
+| `fe-app/modules/registration/presentation/components/registration-detail-dialog.tsx` | Dialog preview pendaftar dengan indikator pengiriman email otomatis dan toast feedback. |
+| `be-app/src/modules/registration/application/registration.service.ts` | Validasi wajib email, cek duplikasi email per lomba, dan rate limit. |
+| `fe-app/lib/api-client.ts` | Meneruskan header `x-forwarded-for` dan `user-agent` ke backend. |
+| `fe-app/modules/registration/presentation/components/dynamic-form-renderer.tsx` | Default field email wajib, deteksi IP block banner, dan form submission. |
+| `fe-app/app/(detail)/competition/[id]/register/page.tsx` | Halaman formulir pendaftaran online publik di luar dashboard. |
+| `fe-app/app/(landing)/register/[competitionId]/page.tsx` | Route alias pendaftaran publik. |
+| `fe-app/app/(dashboard)/dashboard/registrations/[id]/page.tsx` | Halaman server component detail & validasi admin. |
+| `fe-app/modules/registration/presentation/components/registration-validation-view.tsx` | Komponen interaktif validasi dengan tombol Confirm, Reject, dan berkas MinIO. |
+| `fe-app/modules/registration/presentation/components/registrations-table.tsx` | Penambahan tombol `Validasi` di setiap baris tabel pendaftar. |
+| `be-app/docs/api/registration-api.md` | Dokumentasi spesifikasi kontrak REST API pendaftaran & validasi. |
+| `fe-app/docs/feateures/registration-management.md` | Dokumentasi spesifikasi teknis pendaftaran & validasi admin. |
